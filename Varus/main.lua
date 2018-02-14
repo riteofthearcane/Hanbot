@@ -27,9 +27,11 @@ local ts = avada_lib.targetSelector
 local orb = module.internal("orb")
 local gpred = module.internal("pred")
 
-script.q = {delay = 0, width = 70, speed = 1850, boundingRadiusMod = 0, minRange = 925, maxRange = 1600, active = false, start = 0} 
+script.q = {delay = 0.25, width = 70, speed = 1850, boundingRadiusMod = 0, minRange = 925, maxRange = 1600, active = false, start = 0} 
 script.e = {delay = 0.25, radius = 200, speed = 1000, boundingRadiusMod = 0, range = 925}
 script.r = {delay = 0.25, width = 120, speed = 1850, boundingRadiusMod = 1, collision = {hero = true, minion = false }, range = 1075 }
+script.buffer = {time = os.clock(), target = nil, delay = 0.15}
+script.nextcast = os.clock()
 
 script.menu = menu("varusmenu", script.name)
 	ts = ts(script.menu, 1800)
@@ -40,7 +42,7 @@ script.menu = menu("varusmenu", script.name)
 		local enemy = objManager.enemies[i]
 		script.menu.antigap:boolean(enemy.charName, enemy.charName, false)
 	end
-	script.menu:dropdown("sp_priority", "Spell Priority", 2, {"E","Q"})
+	script.menu:dropdown("sp_priority", "Spell Priority", 1, {"E","Q"})
 		
 
 local function getQRange()
@@ -77,18 +79,38 @@ function script.CastR(target)
 	end
 end
 
+local function BufferQ(enemy)
+	if os.clock()>=script.buffer.time and script.buffer.target == nil then
+		player:castSpell("pos", 0, game.mousePos)
+		script.buffer.time = os.clock()+script.buffer.delay
+		script.buffer.target = enemy
+	end
+end
+
 local function DetonateBlight()
 	for i=0, objManager.enemies_n - 1 do
 		local enemy = objManager.enemies[i]
-		if enemy.buff["varuswdebuff"] and enemy.buff["varuswdebuff"].stacks==3 then
-			--script.CastE(enemy)
-			--player:castSpell("pos", 0, game.mousePos) 
-			--if script.q.active then
-				--script.CastQ(enemy)
-			--end
+		if enemy.buff["varuswdebuff"] and enemy.buff["varuswdebuff"].stacks== 3 and player.pos:dist(enemy.pos) <= 1000 and os.clock() >= script.nextcast then
+			if player:spellSlot(0).state == 0 and player:spellSlot(2).state ~= 0 then
+				BufferQ(enemy)
+			end
+			if player:spellSlot(0).state ~= 0 and player:spellSlot(2).state == 0 then
+				script.CastE(enemy)
+				script.nextcast = os.clock() + 1.175
+			end
+			if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 then
+				if script.menu.sp_priority:get() == 1 then 
+					script.CastE(enemy)
+					script.nextcast = os.clock() + 1.175
+				else
+					BufferQ(enemy)
+				end
+			end
 		end
 	end
 end
+
+
 
 local function AntiGap()
 	if player:spellSlot(3).state == 0  then
@@ -99,7 +121,7 @@ local function AntiGap()
 				if script.menu.antigap[name]:get() then
 					local pred_pos = gpred.core.project(player.path.serverPos2D, enemy.path, network.latency + script.r.delay, script.r.speed, enemy.path.dashSpeed)
 					if pred_pos and pred_pos:dist(player.path.serverPos2D) <= 850 then
-						player:castSpell("pos", 3, vec3(pred_pos.x, enemy.y, pred_pos.y)) -- cp from ryan
+						player:castSpell("pos", 3, vec3(pred_pos.x, enemy.y, pred_pos.y))
 					end
 				end
 			end
@@ -130,11 +152,19 @@ local function OnTick()
 	local target = ts.target	
 	AntiGap()
 	if orb.menu.combat:get() then
+		if os.clock() >= script.buffer.time and script.buffer.target~= nil then
+			if not common.IsValidTarget(script.buffer.target) then
+				script.buffer.target = target
+			end
+			script.CastQ(script.buffer.target)
+			script.buffer.target = nil
+			script.nextcast = os.clock() + 0.5
+		end
+		if script.q.active and target and script.buffer.target == nil then
+		script.CastQ(target)	
+		end
 		UltMultiple()
 		DetonateBlight()
-		if script.q.active and target then
-			script.CastQ(target)	
-		end
 	end
 	if target then
 		if script.menu.ult:get() then
@@ -144,6 +174,7 @@ local function OnTick()
 			script.CastE(target)
 		end
 	end
+
 end
 
 local function OnUpdateBuff(buff)
