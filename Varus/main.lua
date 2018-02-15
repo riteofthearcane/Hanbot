@@ -23,7 +23,7 @@ elseif avada_lib.version < 1 then
 end
 
 local common = avada_lib.common
-local ts = avada_lib.targetSelector
+local ts = module.internal('TS')
 local orb = module.internal("orb")
 local gpred = module.internal("pred")
 
@@ -34,8 +34,8 @@ script.buffer = {time = os.clock(), target = nil, delay = 0.15}
 script.nextcast = os.clock()
 
 script.menu = menu("varusmenu", script.name)
-	ts = ts(script.menu, 1800)
-	ts:addToMenu()
+	ts.load_to_menu(script.menu)
+
 	script.menu:keybind("ult", "Semi-manual R", "Z", nil)
 	script.menu:menu("antigap", "Anti-gapcloser R")
 	for i = 0, objManager.enemies_n - 1 do
@@ -148,8 +148,15 @@ local function UltMultiple()
 	end
 end
 
+local TargetSelection = function(res, obj, dist)
+    if dist < 2000 then
+      res.obj = obj
+      return true
+    end
+end
+
 local function OnTick()
-	local target = ts.target	
+	local target = ts.get_result(TargetSelection).obj
 	AntiGap()
 	if orb.menu.combat:get() then
 		if os.clock() >= script.buffer.time and script.buffer.target~= nil then
@@ -174,7 +181,6 @@ local function OnTick()
 			script.CastE(target)
 		end
 	end
-
 end
 
 local function OnUpdateBuff(buff)
@@ -185,14 +191,12 @@ local function OnUpdateBuff(buff)
 	end
 end
 
-
 local function OnRemoveBuff(buff)
 	if buff.name == "VarusQ" then 
 		script.q.active = false
 		orb.core.set_pause_attack(0)
 	end
 end
-
 
 local function OnDraw()
 	graphics.draw_circle(player.pos, script.e.range, 1, graphics.argb(255, 255, 255, 255), 50)
