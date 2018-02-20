@@ -28,16 +28,13 @@ local orb = module.internal("orb")
 local gpred = module.internal("pred")
 
 script.q = {delay = 0.25, width = 70, speed = 1850, boundingRadiusMod = 0, minRange = 925, maxRange = 1600, active = false, start = 0, chargetime = os.clock(), target = nil, releasedelay = 0.15} 
-script.e = {delay = 1.25, radius = 235, speed = math.huge, boundingRadiusMod = 0, range = 925}
+script.e = {delay = 0.25, radius = 200, speed = 1000, boundingRadiusMod = 0, range = 925}
 script.r = {delay = 0.25, width = 120, speed = 1850, boundingRadiusMod = 1, collision = {hero = true, minion = false }, range = 1075 }
-script.aa = {range = 575, speed = 2000, delay = 1}
 script.nextcast = os.clock()
-script.preE = {time = os.clock(),target = nil}
-script.preQ = {time = os.clock(),target = nil}
-
 
 script.menu = menu("varusmenu", script.name)
 	ts.load_to_menu(script.menu)
+
 	script.menu:keybind("ult", "Semi-manual R", "Z", nil)
 	script.menu:menu("antigap", "Anti-gapcloser R")
 	for i = 0, objManager.enemies_n - 1 do
@@ -45,6 +42,7 @@ script.menu = menu("varusmenu", script.name)
 		script.menu.antigap:boolean(enemy.charName, enemy.charName, false)
 	end
 	script.menu:dropdown("sp_priority", "Spell Priority", 1, {"E","Q"})
+		
 
 local function getQRange()
 	local t = os.clock() - script.q.start + network.latency
@@ -88,32 +86,30 @@ local function BufferQ(enemy)
 	end
 end
 
-local function ProcEQ(enemy)
-	if player:spellSlot(0).state == 0 and player:spellSlot(2).state ~= 0 then
-		BufferQ(enemy)
-	end
-	if player:spellSlot(0).state ~= 0 and player:spellSlot(2).state == 0 then
-		script.CastE(enemy)
-		script.nextcast = os.clock() + script.e.delay
-	end
-	if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 then
-		if script.menu.sp_priority:get() == 1 then 
-			script.CastE(enemy)
-			script.nextcast = os.clock() + script.e.delay
-		else
-			BufferQ(enemy)
-		end
-	end
-end
-
 local function DetonateBlight()
 	for i=0, objManager.enemies_n - 1 do
 		local enemy = objManager.enemies[i]
 		if enemy.buff["varuswdebuff"] and enemy.buff["varuswdebuff"].stacks== 3 and player.pos:dist(enemy.pos) <= 1000 and os.clock() >= script.nextcast then
-			ProcEQ(enemy)
+			if player:spellSlot(0).state == 0 and player:spellSlot(2).state ~= 0 then
+				BufferQ(enemy)
+			end
+			if player:spellSlot(0).state ~= 0 and player:spellSlot(2).state == 0 then
+				script.CastE(enemy)
+				script.nextcast = os.clock() + 1.175
+			end
+			if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 then
+				if script.menu.sp_priority:get() == 1 then 
+					script.CastE(enemy)
+					script.nextcast = os.clock() + 1.175
+				else
+					BufferQ(enemy)
+				end
+			end
 		end
 	end
 end
+
+
 
 local function AntiGap()
 	if player:spellSlot(3).state == 0  then
@@ -140,7 +136,7 @@ local function UltMultiple()
 			hit = 0
 			for j=0, objManager.enemies_n - 1 do
 				near = objManager.enemies[j]
-				if enemy.pos:dist(near.pos) <= 450 then
+				if enemy.pos:dist(near.pos) <= 600 then
 					hit = hit + 1
 				end
 			end
@@ -171,13 +167,8 @@ local function OnTick()
 			script.nextcast = os.clock() + 0.5
 		end
 		if script.q.active and target and script.q.target == nil then
-			script.CastQ(target)	
+		script.CastQ(target)	
 		end
-		[[--if script.preE.time <= os.clock() and script.preE.target ~= nil then
-			script.CastE(script.preE.target)
-			script.preE.target = nil
-			script.nextcast = os.clock() + script.e.delay
-		end]]--
 		UltMultiple()
 		DetonateBlight()
 	end
@@ -192,40 +183,17 @@ local function OnTick()
 end
 
 local function OnUpdateBuff(buff)
-	if buff.owner.ptr == player.ptr and buff.name == "VarusQ" then 
+	if buff.name == "VarusQ" then 
 		script.q.active = true
 		script.q.start = os.clock()
 		orb.core.set_pause_attack(math.huge)
 	end
-	if buff.owner.ptr == player.ptr and buff.name == "rageblade" then
-		print(buff.stacks)
-	end
 end
 
 local function OnRemoveBuff(buff)
-	if buff.owner.ptr == player.ptr and buff.name == "VarusQ" then 
+	if buff.name == "VarusQ" then 
 		script.q.active = false
 		orb.core.set_pause_attack(0)
-	end
-end
-
-local function AfterAttack()
-	enemy = orb.core.cur_attack_target
-	aamissilespeed = script.aa.speed
-	if orb.menu.combat:get() and common.IsValidTarget(enemy) and enemy.buff["varuswdebuff"] and enemy.buff["varuswdebuff"].stacks== 2 and player.pos:dist(enemy.pos) <= 1000 and os.clock() >= script.nextcast and os.clock() >=  script.preE.time then
-		aatraveltime = math.min(player.pos:dist(enemy.pos),script.aa.range)/aamissilespeed --just not going to deal with distance changing, should be safer and a little slower
-		--print(aatraveltime+script.aa.delay-script.e.delay)
-		offset = aatraveltime+script.aa.delay-script.e.delay
-		if offset > 0 then
-			script.preE.time= os.clock()+offset
-			script.preE.target = enemy
-		else 
-			script.CastE(enemy)
-			script.nextcast = os.clock() + script.e.delay
-		end
-		if orb.combat.can_attack() and player.pos:dist(enemy.pos) <= script.aa.range then --to ensure this is only being done if target hasnt left aa range
-			player:attack(enemy)
-		end
 	end
 end
 
@@ -234,17 +202,9 @@ local function OnDraw()
 	graphics.draw_circle(player.pos, script.q.maxRange, 1, graphics.argb(255, 255, 255, 255), 50)
 end
 
-local function checkAA(missile)
-	if missile.spell.owner.ptr == player.ptr and missile.spell.isBasicAttack then
-		script.aa.delay = missile.spell.animationTime
-	end
-end
-
 cb.add(cb.removebuff, OnRemoveBuff)
 cb.add(cb.updatebuff, OnUpdateBuff)
 cb.add(cb.tick, OnTick)
 cb.add(cb.draw, OnDraw)
-orb.combat.register_f_after_attack(AfterAttack)
-cb.add(cb.missile, checkAA)
 
 print("Varus loaded")
