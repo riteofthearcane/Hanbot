@@ -1,7 +1,7 @@
 local script = {}
 script.name = "Varus"
 script.developer = "asdf"
-script.version = 1.0
+script.version = 2.0
 
 local avada_lib = module.lib('avada_lib')
 if not avada_lib then
@@ -27,10 +27,15 @@ local ts = module.internal('TS')
 local orb = module.internal("orb")
 local gpred = module.internal("pred")
 
-script.q = {delay = 0.25, width = 70, speed = 1850, boundingRadiusMod = 0, minRange = 925, maxRange = 1600, active = false, start = 0, chargetime = os.clock(), target = nil, releasedelay = 0.15} 
-script.e = {delay = 0.25, radius = 200, speed = 1000, boundingRadiusMod = 0, range = 925}
-script.r = {delay = 0.25, width = 120, speed = 1850, boundingRadiusMod = 1, collision = {hero = true, minion = false }, range = 1075 }
+script.q = {delay = 0, width = 70, speed = 1850, boundingRadiusMod = 0, minRange = 925, maxRange = 1600, active = false, start = 0, chargetime = os.clock(), target = nil, releasedelay = 0.15} 
+script.e = {delay = 1.25, radius = 235, speed = math.huge, boundingRadiusMod = 0, range = 925}
+script.r = {delay = 0.25, width = 120, speed = 1850, boundingRadiusMod = 1, collision = {hero = true, minion = false }, range = 1075}
+script.aa = {range = 575, speed = 2000, delay = 1}
 script.nextcast = os.clock()
+script.preQ = {time = os.clock(),target = nil}
+script.preE = {time = os.clock(),target = nil}
+script.attacked = false
+
 
 script.menu = menu("varusmenu", script.name)
 	ts.load_to_menu(script.menu)
@@ -42,6 +47,7 @@ script.menu = menu("varusmenu", script.name)
 		script.menu.antigap:boolean(enemy.charName, enemy.charName, false)
 	end
 	script.menu:dropdown("sp_priority", "Spell Priority", 1, {"E","Q"})
+	script.menu:boolean("experimental", "Experimental Fast Combo", true)
 		
 
 local function getQRange()
@@ -109,8 +115,6 @@ local function DetonateBlight()
 	end
 end
 
-
-
 local function AntiGap()
 	if player:spellSlot(3).state == 0  then
 		for i=0, objManager.enemies_n - 1 do
@@ -154,6 +158,44 @@ local TargetSelection = function(res, obj, dist)
     end
 end
 
+local function preCastQ(target, aatraveltime, animationTime)
+	qtraveltime = player.pos:dist(target.pos)/script.q.speed
+	offset = aatraveltime+animationTime-qtraveltime-script.q.releasedelay+0.2
+	script.preQ.time = os.clock()+offset
+	script.preQ.target=target
+end
+
+local function preCastE(target, aatraveltime,animationTime)
+	offset = aatraveltime+animationTime-script.e.delay + 0.7  
+	script.preE.time = os.clock()+offset
+	script.preE.target=target
+end
+
+local function checkAA(missile)
+	if script.menu.experimental:get() and missile.spell.owner.ptr == player.ptr and missile.spell.isBasicAttack then
+		enemy = orb.core.cur_attack_target
+		if orb.menu.combat:get() and common.IsValidTarget(enemy) and enemy.buff["varuswdebuff"] and enemy.buff["varuswdebuff"].stacks== 1 and player.pos:dist(enemy.pos) <= script.aa.range+100 and os.clock() >= script.nextcast then
+			aatraveltime = player.pos:dist(enemy.pos)/script.aa.speed
+			if player:spellSlot(0).state == 0 and player:spellSlot(2).state ~= 0 then
+				preCastQ(enemy, aatraveltime, missile.spell.animationTime)
+			end
+			if player:spellSlot(0).state ~= 0 and player:spellSlot(2).state == 0 then
+				preCastE(enemy, aatraveltime, missile.spell.animationTime)
+			end
+			if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 then
+				if script.menu.sp_priority:get() == 1 then 
+					preCastE(enemy, aatraveltime, missile.spell.animationTime)
+				else
+					preCastQ(enemy, aatraveltime, missile.spell.animationTime)
+				end
+			end
+			if orb.combat.can_attack() and player.pos:dist(enemy.pos) <= script.aa.range then
+				player:attack(enemy)
+			end
+		end
+	end
+end
+		
 local function OnTick()
 	local target = ts.get_result(TargetSelection).obj
 	AntiGap()
@@ -165,6 +207,15 @@ local function OnTick()
 			script.CastQ(script.q.target)
 			script.q.target = nil
 			script.nextcast = os.clock() + 0.5
+		end
+		if os.clock() >= script.preQ.time and os.clock() - script.preQ.time <= 1 and script.preQ.target ~= nil and player:spellSlot(0).state == 0 then
+			BufferQ(script.preQ.target)
+			script.preQ.target = nil
+		end
+		if os.clock() >= script.preE.time and os.clock() - script.preE.time <= 1 and script.preE.target ~= nil and player:spellSlot(2).state == 0 then
+			script.CastE(script.preE.target)
+			script.preE.target = nil
+			script.nextcast = os.clock() + script.e.delay
 		end
 		if script.q.active and target and script.q.target == nil then
 		script.CastQ(target)	
@@ -197,14 +248,17 @@ local function OnRemoveBuff(buff)
 	end
 end
 
+
 local function OnDraw()
 	graphics.draw_circle(player.pos, script.e.range, 1, graphics.argb(255, 255, 255, 255), 50)
 	graphics.draw_circle(player.pos, script.q.maxRange, 1, graphics.argb(255, 255, 255, 255), 50)
 end
 
+cb.add(cb.missile, checkAA)
 cb.add(cb.removebuff, OnRemoveBuff)
 cb.add(cb.updatebuff, OnUpdateBuff)
 cb.add(cb.tick, OnTick)
 cb.add(cb.draw, OnDraw)
+
 
 print("Varus loaded")
