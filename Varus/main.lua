@@ -1,7 +1,7 @@
 local script = {}
 script.name = "Varus"
 script.developer = "asdf"
-script.version = 2.0
+script.version = 2.1
 
 local avada_lib = module.lib('avada_lib')
 if not avada_lib then
@@ -34,8 +34,7 @@ script.aa = {range = 575, speed = 2000, delay = 1}
 script.nextcast = os.clock()
 script.preQ = {time = os.clock(),target = nil}
 script.preE = {time = os.clock(),target = nil}
-script.attacked = false
-
+script.guinsoos = false
 
 script.menu = menu("varusmenu", script.name)
 	ts.load_to_menu(script.menu)
@@ -49,16 +48,35 @@ script.menu = menu("varusmenu", script.name)
 	script.menu:dropdown("sp_priority", "Spell Priority", 1, {"E","Q"})
 	script.menu:boolean("experimental", "Experimental Fast Combo", true)
 		
-
 local function getQRange()
 	local t = os.clock() - script.q.start + network.latency
-	return math.min(script.q.maxRange, script.q.minRange + t/2.0*script.q.minRange)
+	return math.min(script.q.maxRange, script.q.minRange + t/2.0*script.q.minRange-100)
+end
+
+local function qTraceFilter(seg, obj)
+	if gpred.trace.linear.hardlock(script.q, seg, obj) then
+		return true
+	end
+	if gpred.trace.linear.hardlockmove(script.q, seg, obj) then
+		return true
+	end
+	if not obj.path.isActive then
+		if getQRange() < seg.startPos:dist(obj.pos2D) + (obj.moveSpeed * 0.333) then
+			return false
+		end
+	end
+	if getQRange()<1300 then
+		return true
+	end
+	if gpred.trace.newpath(obj, 0.033, 0.500) then
+		return true
+	end
 end
 
 function script.CastQ(target)
 	if player:spellSlot(0).state == 0 then
 		local seg = gpred.linear.get_prediction(script.q, target)
-		if seg and seg.startPos:dist(seg.endPos) <= getQRange() then
+		if seg and qTraceFilter(seg, target) then
 			player:castSpell("release", 0, vec3(seg.endPos.x, target.pos.y, seg.endPos.y))
 		end 
 	end
@@ -140,7 +158,7 @@ local function UltMultiple()
 			hit = 0
 			for j=0, objManager.enemies_n - 1 do
 				near = objManager.enemies[j]
-				if enemy.pos:dist(near.pos) <= 600 then
+				if enemy.pos:dist(near.pos) <= 500 then
 					hit = hit + 1
 				end
 			end
@@ -174,23 +192,25 @@ end
 local function checkAA(missile)
 	if script.menu.experimental:get() and missile.spell.owner.ptr == player.ptr and missile.spell.isBasicAttack then
 		enemy = orb.core.cur_attack_target
-		if orb.menu.combat:get() and common.IsValidTarget(enemy) and enemy.buff["varuswdebuff"] and enemy.buff["varuswdebuff"].stacks== 1 and player.pos:dist(enemy.pos) <= script.aa.range+100 and os.clock() >= script.nextcast then
-			aatraveltime = player.pos:dist(enemy.pos)/script.aa.speed
-			if player:spellSlot(0).state == 0 and player:spellSlot(2).state ~= 0 then
-				preCastQ(enemy, aatraveltime, missile.spell.animationTime)
-			end
-			if player:spellSlot(0).state ~= 0 and player:spellSlot(2).state == 0 then
-				preCastE(enemy, aatraveltime, missile.spell.animationTime)
-			end
-			if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 then
-				if script.menu.sp_priority:get() == 1 then 
-					preCastE(enemy, aatraveltime, missile.spell.animationTime)
-				else
+		if orb.menu.combat:get() and common.IsValidTarget(enemy) and player.pos:dist(enemy.pos) <= script.aa.range+100 and os.clock() >= script.nextcast then
+			if (enemy.buff["varuswdebuff"] and not script.guinsoos and enemy.buff["varuswdebuff"].stacks== 1) or (script.guinsoos and not enemy.buff["varuswdebuff"]) then
+				aatraveltime = player.pos:dist(enemy.pos)/script.aa.speed
+				if player:spellSlot(0).state == 0 and player:spellSlot(2).state ~= 0 then
 					preCastQ(enemy, aatraveltime, missile.spell.animationTime)
 				end
-			end
-			if orb.combat.can_attack() and player.pos:dist(enemy.pos) <= script.aa.range then
-				player:attack(enemy)
+				if player:spellSlot(0).state ~= 0 and player:spellSlot(2).state == 0 then
+					preCastE(enemy, aatraveltime, missile.spell.animationTime)
+				end
+				if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 then
+					if script.menu.sp_priority:get() == 1 then 
+						preCastE(enemy, aatraveltime, missile.spell.animationTime)
+					else
+						preCastQ(enemy, aatraveltime, missile.spell.animationTime)
+					end
+				end
+				if orb.combat.can_attack() and player.pos:dist(enemy.pos) <= script.aa.range then
+					player:attack(enemy)
+				end
 			end
 		end
 	end
@@ -239,6 +259,9 @@ local function OnUpdateBuff(buff)
 		script.q.start = os.clock()
 		orb.core.set_pause_attack(math.huge)
 	end
+	if buff.name == "rageblade" and buff.owner.ptr == player.ptr and buff.stacks == 6 then
+		script.guinsoos = true
+	end
 end
 
 local function OnRemoveBuff(buff)
@@ -246,8 +269,10 @@ local function OnRemoveBuff(buff)
 		script.q.active = false
 		orb.core.set_pause_attack(0)
 	end
+	if buff.name == "rageblade" and buff.owner.ptr == player.ptr then
+		script.guinsoos = false
+	end
 end
-
 
 local function OnDraw()
 	graphics.draw_circle(player.pos, script.e.range, 1, graphics.argb(255, 255, 255, 255), 50)
@@ -259,6 +284,5 @@ cb.add(cb.removebuff, OnRemoveBuff)
 cb.add(cb.updatebuff, OnUpdateBuff)
 cb.add(cb.tick, OnTick)
 cb.add(cb.draw, OnDraw)
-
 
 print("Varus loaded")
