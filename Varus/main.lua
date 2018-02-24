@@ -47,6 +47,8 @@ script.menu = menu("varusmenu", script.name)
 	end
 	script.menu:dropdown("sp_priority", "Spell Priority", 1, {"E","Q"})
 	script.menu:boolean("experimental", "Experimental Fast Combo", true)
+	script.menu:boolean("drawings", "Drawings", true)
+
 		
 local function getQRange()
 	local t = os.clock() - script.q.start + network.latency
@@ -73,7 +75,7 @@ local function qTraceFilter(seg, obj)
 	end
 end
 
-local function rTraceFilter(seg, obj)
+local function rTraceFilter(seg, obj, slow)
 	if gpred.trace.linear.hardlock(script.r, seg, obj) then
 		return true
 	end
@@ -84,6 +86,9 @@ local function rTraceFilter(seg, obj)
 		if script.r.range < seg.startPos:dist(obj.pos2D) + (obj.moveSpeed * 0.333) then
 			return false
 		end
+	end
+	if not slow then
+		return true
 	end
 	if gpred.trace.newpath(obj, 0.033, 0.500) then
 		return true
@@ -108,10 +113,10 @@ function script.CastE(target)
 	end
 end	
 	
-function script.CastR(target)
+function script.CastR(target, slow)
 	if player:spellSlot(3).state == 0  then
 		local seg = gpred.linear.get_prediction(script.r, target)
-		if seg and rTraceFilter(seg, target) then
+		if seg and rTraceFilter(seg, target, slow) then
 			if not gpred.collision.get_prediction(script.r, seg, target) then
 				player:castSpell("pos", 3, vec3(seg.endPos.x, target.pos.y, seg.endPos.y))
 			end
@@ -180,7 +185,7 @@ local function UltMultiple()
 				end
 			end
 			if hit >= ultcount then
-				script.CastR(enemy)
+				script.CastR(enemy, true)
 			end
 		end
 	end
@@ -209,7 +214,7 @@ end
 local function checkAA(missile)
 	if script.menu.experimental:get() and missile.spell.owner.ptr == player.ptr and missile.spell.isBasicAttack then
 		enemy = orb.core.cur_attack_target
-		if orb.menu.combat:get() and common.IsValidTarget(enemy) and player.pos:dist(enemy.pos) <= script.aa.range+100 and os.clock() >= script.nextcast then
+		if orb.menu.combat:get() and common.IsValidTarget(enemy) and player.pos:dist(enemy.pos) <= script.aa.range-100 and os.clock() >= script.nextcast then
 			if (enemy.buff["varuswdebuff"] and not script.guinsoos and enemy.buff["varuswdebuff"].stacks== 1) or (script.guinsoos and not enemy.buff["varuswdebuff"]) then
 				aatraveltime = player.pos:dist(enemy.pos)/script.aa.speed
 				if player:spellSlot(0).state == 0 and player:spellSlot(2).state ~= 0 then
@@ -224,7 +229,7 @@ local function checkAA(missile)
 					else
 						preCastQ(enemy, aatraveltime, missile.spell.animationTime)
 					end
-				end
+				end 
 				if orb.combat.can_attack() and player.pos:dist(enemy.pos) <= script.aa.range then
 					player:attack(enemy)
 				end
@@ -246,13 +251,19 @@ local function OnTick()
 			script.nextcast = os.clock() + 0.5
 		end
 		if os.clock() >= script.preQ.time and os.clock() - script.preQ.time <= 1 and script.preQ.target ~= nil and player:spellSlot(0).state == 0 then
-			BufferQ(script.preQ.target)
-			script.preQ.target = nil
+			if common.IsValidTarget(script.preQ.target) then
+				BufferQ(script.preQ.target)
+				script.preQ.target = nil
+			else
+				script.q.target = nil
+			end
 		end
 		if os.clock() >= script.preE.time and os.clock() - script.preE.time <= 1 and script.preE.target ~= nil and player:spellSlot(2).state == 0 then
-			script.CastE(script.preE.target)
+			if common.IsValidTarget(script.preE.target) then
+				script.CastE(script.preE.target)
+			end
+				script.nextcast = os.clock() + script.e.delay
 			script.preE.target = nil
-			script.nextcast = os.clock() + script.e.delay
 		end
 		if script.q.active and target and script.q.target == nil then
 		script.CastQ(target)	
@@ -262,7 +273,7 @@ local function OnTick()
 	end
 	if target then
 		if script.menu.ult:get() then
-			script.CastR(target)
+			script.CastR(target, false)
 		end
 		if orb.menu.hybrid:get() then
 			script.CastE(target)
@@ -292,8 +303,10 @@ local function OnRemoveBuff(buff)
 end
 
 local function OnDraw()
-	graphics.draw_circle(player.pos, script.e.range, 1, graphics.argb(255, 255, 255, 255), 50)
-	graphics.draw_circle(player.pos, script.q.maxRange, 1, graphics.argb(255, 255, 255, 255), 50)
+	if script.menu.drawings:get() then
+		graphics.draw_circle(player.pos, script.e.range, 1, graphics.argb(255, 255, 255, 255), 50)
+		graphics.draw_circle(player.pos, script.q.maxRange, 1, graphics.argb(255, 255, 255, 255), 50)
+	end
 end
 
 cb.add(cb.missile, checkAA)
