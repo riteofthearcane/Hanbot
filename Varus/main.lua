@@ -1,7 +1,7 @@
 local script = {}
 script.name = "Varus"
 script.developer = "asdf"
-script.version = 2.1
+script.version = 2.2
 
 local avada_lib = module.lib('avada_lib')
 if not avada_lib then
@@ -50,7 +50,7 @@ script.menu = menu("varusmenu", script.name)
 		
 local function getQRange()
 	local t = os.clock() - script.q.start + network.latency
-	return math.min(script.q.maxRange, script.q.minRange + t/2.0*script.q.minRange-100)
+	return math.min(script.q.maxRange, script.q.minRange + t/2.0*script.q.minRange)
 end
 
 local function qTraceFilter(seg, obj)
@@ -67,6 +67,23 @@ local function qTraceFilter(seg, obj)
 	end
 	if getQRange()<1300 then
 		return true
+	end
+	if gpred.trace.newpath(obj, 0.033, 0.500) then
+		return true
+	end
+end
+
+local function rTraceFilter(seg, obj)
+	if gpred.trace.linear.hardlock(script.r, seg, obj) then
+		return true
+	end
+	if gpred.trace.linear.hardlockmove(script.r, seg, obj) then
+		return true
+	end
+	if not obj.path.isActive then
+		if script.r.range < seg.startPos:dist(obj.pos2D) + (obj.moveSpeed * 0.333) then
+			return false
+		end
 	end
 	if gpred.trace.newpath(obj, 0.033, 0.500) then
 		return true
@@ -94,7 +111,7 @@ end
 function script.CastR(target)
 	if player:spellSlot(3).state == 0  then
 		local seg = gpred.linear.get_prediction(script.r, target)
-		if seg and seg.startPos:dist(seg.endPos) <= script.r.range then
+		if seg and rTraceFilter(seg, target) then
 			if not gpred.collision.get_prediction(script.r, seg, target) then
 				player:castSpell("pos", 3, vec3(seg.endPos.x, target.pos.y, seg.endPos.y))
 			end
