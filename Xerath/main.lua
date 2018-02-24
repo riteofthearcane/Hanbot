@@ -26,7 +26,7 @@ local common = avada_lib.common
 local ts = avada_lib.targetSelector
 local orb = module.internal("orb")
 local gpred = module.internal("pred")
-local evade = module.seek("evade/main")
+local evade = module.seek("evade")
 
 
 script.menu = menu("xerathmenu", script.name)
@@ -41,6 +41,16 @@ script.menu = menu("xerathmenu", script.name)
 	end
 	
 r = player:spellSlot(3)
+rDraw = {
+  buffer = vec2.array(65),
+
+  properties = { 
+    x = 14817, 
+    y = 14692,
+  }
+}
+color = graphics.argb(222, 231, 254, 255)
+
 
 local function AntiGap()
 	if player:spellSlot(2).state == 0  then
@@ -51,6 +61,7 @@ local function AntiGap()
 				if script.menu.antigap[name]:get() then
 					local pred_pos = gpred.core.project(player.path.serverPos2D, enemy.path, network.latency + 0.25, 1400, enemy.path.dashSpeed)
 					if pred_pos and pred_pos:dist(player.path.serverPos2D) <= 800 then
+						player:castSpell("pos", 2, vec3(pred_pos.x, enemy.y, pred_pos.y))
 					end
 				end
 			end
@@ -58,42 +69,40 @@ local function AntiGap()
 	end
 end
 
-local function OnTick()	
+local function OnTick()
 	AntiGap()
 end
 
 local function OnDraw()
 	if script.menu.qdraw:get() then
-		graphics.draw_circle(player.pos, 1550, 1, graphics.argb(255, 255, 255, 255), 50)
+		graphics.draw_circle(player.pos, 1550, 1, color, 50)
 	end
-	if script.menu.rdraw:get() then 
-		if r.level > 0 then
-			graphics.draw_circle(player.pos, (2000 + (1200*r.level)), 1, graphics.argb(255, 255, 0, 0), 32)
+	if r.level > 0 then 
+		if script.menu.rdraw:get() then
+			graphics.draw_circle(player.pos, (2000 + (1200*r.level)), 1, color, 32)
+		end
+		if script.menu.rdrawmini:get() then
+			minimap.draw_circle(player.pos, (2000 + (1200*r.level)), 1, color, 32)
 		end
 	end
 end
 
 local function OnUpdateBuff(buff)
 	if buff.name == "xerathrshots" then
-		if evade then
-			evade.core.set_pause(math.huge)
-			print("true")
-		end
+		evade.core.set_pause(math.huge)
 	end
 end
 
 local function OnRemoveBuff(buff)
 	if buff.name == "xerathrshots" then
-		if evade then
-			evade.core.set_pause(0)
-			print("false")
-		end
+		evade.core.set_pause(0)
 	end
 end
 
 cb.add(cb.tick, OnTick)
 cb.add(cb.draw, OnDraw)
-if script.menu.evade:get() then
+
+if evade and script.menu.evade:get() then
 	cb.add(cb.updatebuff,OnUpdateBuff)
 	cb.add(cb.removebuff,OnRemoveBuff)
 end
