@@ -1,7 +1,7 @@
 local script = {}
 script.name = "Varus"
 script.developer = "asdf"
-script.version = 2.2
+script.version = 2.3
 
 local avada_lib = module.lib('avada_lib')
 if not avada_lib then

@@ -40,18 +40,6 @@ script.menu = menu("xerathmenu", script.name)
 		script.menu.antigap:boolean(enemy.charName, enemy.charName, false)
 	end
 	
-r = player:spellSlot(3)
-rDraw = {
-  buffer = vec2.array(65),
-
-  properties = { 
-    x = 14817, 
-    y = 14692,
-  }
-}
-color = graphics.argb(222, 231, 254, 255)
-
-
 local function AntiGap()
 	if player:spellSlot(2).state == 0  then
 		for i=0, objManager.enemies_n - 1 do
