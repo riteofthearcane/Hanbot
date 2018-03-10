@@ -39,6 +39,9 @@ script.menu = menu("xerathmenu", script.name)
 		local enemy = objManager.enemies[i]
 		script.menu.antigap:boolean(enemy.charName, enemy.charName, false)
 	end
+
+r = player:spellSlot(3)
+color = graphics.argb(255, 255, 255, 255)
 	
 local function AntiGap()
 	if player:spellSlot(2).state == 0  then
@@ -63,7 +66,7 @@ end
 
 local function OnDraw()
 	if script.menu.qdraw:get() then
-		graphics.draw_circle(player.pos, 1550, 1, color, 50)
+		graphics.draw_circle(player.pos, 1550, 1, color, 32)
 	end
 	if r.level > 0 then 
 		if script.menu.rdraw:get() then
