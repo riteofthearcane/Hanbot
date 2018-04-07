@@ -512,7 +512,7 @@ end
 
 local function OnRemoveBuff(buff)
 	if buff.owner.ptr == player.ptr and buff.name == "sheen" then
-		sheenTimer = os.clock() + 1.5
+		sheenTimer = os.clock() + 1.7
 	end
 end
 
