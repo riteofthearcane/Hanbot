@@ -285,7 +285,6 @@ function script.CastQ(target)
 end
 
 function CanKS(obj)
-	print(GetQDamage(obj))
 	return GetQDamage(obj) > common.GetShieldedHealth("ALL", obj)
 end
 
@@ -509,6 +508,9 @@ local function DeleteObj(object)
 end
 
 local function OnUpdateBuff(buff)
+end
+
+local function OnRemoveBuff(buff)
 	if buff.owner.ptr == player.ptr and buff.name == "sheen" then
 		sheenTimer = os.clock() + 1.5
 	end
@@ -526,6 +528,7 @@ local function OnDraw()
 end
 
 cb.add(cb.updatebuff, OnUpdateBuff)
+cb.add(cb.removebuff, OnRemoveBuff)
 cb.add(cb.createobj, CreateObj)
 cb.add(cb.deleteobj, DeleteObj)
 cb.add(cb.missile, OnMissile)
