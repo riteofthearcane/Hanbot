@@ -456,7 +456,6 @@ local function OnTick()
 		if orb.menu.combat:get() then	
 			if target.buff["ireliamark"] or CanKS(target) then 
 				script.CastQ(target)
-		
 			else
 				if os.clock() >= script.e.nextCast then
 					if script.e.e1Pos == vec3(0,0,0) then 
@@ -482,9 +481,16 @@ local function OnTick()
 		end
 	end
 	
+	
+	
 	if orb.menu.combat:get() then
 		if bestQ ~= nil then
 			script.CastQ(bestQ)
+		end
+		if not target and target2 then
+			if os.clock() >= script.e.nextCast and script.e.e1Pos~= vec3(0,0,0) then
+				script.CastE2(target2)
+			end
 		end
 	end
 end
