@@ -399,23 +399,23 @@ function script.CastE2(target)
 		script.e.delay = 0.5
 		local seg1 = gpred.circular.get_prediction(script.e, target)
 		local predPos1 = vec2(seg1.endPos.x, seg1.endPos.y)
-		local predPos3D = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
+		local predPos3D1 = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
 		if seg1 and player.pos2D:dist(predPos1)<=script.e.range then
 			local e1Pos2D = vec2(script.e_parameters.e1Pos.x, script.e_parameters.e1Pos.y)
 			local tempCastPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos1)
 			local tempCastPos3D = vec3(tempCastPos.x, target.pos.y, tempCastPos.y)
-			if tempCastPos3D:dist(player.pos)>script.e.range or predPos3D:dist(script.e_parameters.e1Pos) > tempCastPos3D:dist(script.e_parameters.e1Pos) then 
-				player:castSpell("pos", 2, predPos3D)
+			if tempCastPos3D:dist(player.pos)>script.e.range or predPos3D1:dist(script.e_parameters.e1Pos) > tempCastPos3D:dist(script.e_parameters.e1Pos) then 
+				player:castSpell("pos", 2, predPos3D1)
 			end
-			script.e.delay = script.e.delay + (player.pos:dist(tempCastPos3D)-player.pos:dist(predPos3D))/script.e.speed
-			local seg2 = gpred.circular.get_prediction(script.e, target)
+			script.e.delay = script.e.delay + (player.pos:dist(tempCastPos3D)-player.pos:dist(predPos3D1))/script.e.speed
+			local seg2 = gpred.circular.get_prediction(script.e, target)	
 			local predPos2 = vec2(seg2.endPos.x, seg2.endPos.y)
-			predPos3D = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
+			local predPos3D2 = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
 			if seg2 and cTraceFilter(seg2, target,script.e) then
 				local castPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos2)
 				local castPos3D = vec3(castPos.x, target.pos.y, castPos.y)
-				if castPos3D:dist(player.pos)>script.e.range or predPos3D:dist(script.e_parameters.e1Pos) > castPos3D:dist(script.e_parameters.e1Pos) then 
-					player:castSpell("pos", 2, predPos3D)
+				if castPos3D:dist(player.pos)>script.e.range or predPos3D2:dist(script.e_parameters.e1Pos) > castPos3D:dist(script.e_parameters.e1Pos) then 
+					player:castSpell("pos", 2, predPos3D1)
 				end
 				player:castSpell("pos", 2, castPos3D)
 				script.e_parameters.e1Pos = vec3(0,0,0)
@@ -444,9 +444,12 @@ local TargetSelectionNearMouse = function(res, obj, dist)
 end
 
 local TargetSelection = function(res, obj, dist)
-	if dist < 2000 then 
-	  res.obj = obj
-	  return true
+	if dist < 2000 then
+		targetNearMouse = ts.get_result(TargetSelectionNearMouse).obj
+		if targetNearMouse and obj ~= targetNearMouse then
+			res.obj = obj
+			return true
+		end
 	end
 end
 
