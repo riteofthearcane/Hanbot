@@ -48,13 +48,6 @@ script.e_parameters = {
 	nextCast = os.clock()
 }
 	
-script.e_faux = {
-	delay = 1, 
-	radius =1, 
-	speed = math.huge, 
-	boundingRadiusMod = 0, 
-	range = 900}
-	
 script.e_obj = nil
 
 script.w = {
@@ -374,10 +367,8 @@ function script.CastE1(target)
 			local pathStartPos = target.path.point[0]
 			local pathEndPos = target.path.point[target.path.count]
 			local pathNorm = (pathEndPos - pathStartPos):norm()
-			local seg = gpred.circular.get_prediction(script.e_faux, target)
-			if seg then
-
-				local tempPred = vec3(seg.endPos.x, target.pos.y, seg.endPos.y)
+			local tempPred = common.GetPredictedPos(target, 1)
+			if tempPred then
 				local dist1 = player.pos:dist(tempPred)
 				if dist1 <= script.e.range then
 					local dist2 = player.pos:dist(target.pos)
@@ -388,9 +379,17 @@ function script.CastE1(target)
 					player:castSpell("pos", 2, cast2)
 					script.e_parameters.e1Pos = cast2
 					script.e_parameters.nextCast = os.clock() + 0.25
+					script.e_parameters.target2 = target
 				end
 			end
 		end
+	end
+end
+
+function script.MultiE1(target, nextTarget) 
+	if player:spellSlot(2).state == 0 then
+		local target1Pos = common.GetPredictedPos(target, 1.25)
+		local target2Pos = common.GetPredictedPos(nextTarget, 1.25)
 	end
 end
 
@@ -398,32 +397,41 @@ function script.CastE2(target)
 	if player:spellSlot(2).state == 0 then --delay e for now
 		script.e.delay = 0.5
 		local seg1 = gpred.circular.get_prediction(script.e, target)
-		local predPos1 = vec2(seg1.endPos.x, seg1.endPos.y)
+		--local tempPos = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
+		--local predPos3D1 = script.e_parameters.e1Pos:lerp(tempPos,(tempPos:dist(script.e_parameters.e1Pos)+script.e.radius)/tempPos:dist(script.e_parameters.e1Pos))
 		local predPos3D1 = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
+		local predPos1 = vec2(seg1.endPos.x, seg1.endPos.y)
 		if seg1 and player.pos2D:dist(predPos1)<=script.e.range then
 			local e1Pos2D = vec2(script.e_parameters.e1Pos.x, script.e_parameters.e1Pos.y)
 			local tempCastPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos1)
 			local tempCastPos3D = vec3(tempCastPos.x, target.pos.y, tempCastPos.y)
 			if tempCastPos3D:dist(player.pos)>script.e.range or predPos3D1:dist(script.e_parameters.e1Pos) > tempCastPos3D:dist(script.e_parameters.e1Pos) then 
 				player:castSpell("pos", 2, predPos3D1)
+				script.e_parameters.e1Pos = vec3(0,0,0)
+				script.e_parameters.nextCast = os.clock() + 0.25
 			end
 			script.e.delay = script.e.delay + (player.pos:dist(tempCastPos3D)-player.pos:dist(predPos3D1))/script.e.speed
-			local seg2 = gpred.circular.get_prediction(script.e, target)	
-			local predPos2 = vec2(seg2.endPos.x, seg2.endPos.y)
+			local seg2 = gpred.circular.get_prediction(script.e, target)
 			local predPos3D2 = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
+			--tempPos = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
+			--local predPos3D2 = script.e_parameters.e1Pos:lerp(tempPos,(tempPos:dist(script.e_parameters.e1Pos)+script.e.radius)/tempPos:dist(script.e_parameters.e1Pos))
+			local predPos2 = vec2(seg2.endPos.x, seg2.endPos.y)
 			if seg2 and cTraceFilter(seg2, target,script.e) then
 				local castPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos2)
 				local castPos3D = vec3(castPos.x, target.pos.y, castPos.y)
 				if castPos3D:dist(player.pos)>script.e.range or predPos3D2:dist(script.e_parameters.e1Pos) > castPos3D:dist(script.e_parameters.e1Pos) then 
 					player:castSpell("pos", 2, predPos3D1)
+				else
+					player:castSpell("pos", 2, castPos3D)
 				end
-				player:castSpell("pos", 2, castPos3D)
 				script.e_parameters.e1Pos = vec3(0,0,0)
 				script.e_parameters.nextCast = os.clock() + 0.25
 			end
 		end
 	end
 end
+
+
 
 function script.CastR(target)
 	if player:spellSlot(3).state == 0  then
@@ -462,14 +470,6 @@ local function OnTick()
 		if orb.menu.combat:get() then	
 			if target.buff["ireliamark"] or CanKS(target) then 
 				script.CastQ(target)
-			else
-				if os.clock() >= script.e_parameters.nextCast then
-					if script.e_parameters.e1Pos == vec3(0,0,0) then 
-						script.CastE1(target)
-					else
-						script.CastE2(target)
-					end
-				end
 			end
 			
 			if player.pos:dist(target.pos) > player.attackRange + 100 then 
@@ -487,15 +487,32 @@ local function OnTick()
 		end
 	end
 	
-	
-	
+
 	if orb.menu.combat:get() then
 		if bestQ ~= nil then
 			script.CastQ(bestQ)
 		end
-		if not target and target2 then
-			if os.clock() >= script.e_parameters.nextCast and script.e_parameters.e1Pos~= vec3(0,0,0) then
-				script.CastE2(target2)
+		if os.clock() >= script.e_parameters.nextCast then 
+			if script.e_parameters.e1Pos == vec3(0,0,0) then 
+				if target and (not target.buff["ireliamark"] or CanKS(target))  then
+					if target2 then
+						script.MultiE1(target2,target)
+					else
+						script.CastE1(target)
+					end
+				end
+			else
+				if common.IsValidTarget(script.e_parameters.target2) and player.pos:dist(script.e_parameters.target2.pos)<=script.e.range then
+					script.CastE2(script.e_parameters.target2)
+				else
+					if target then
+						script.CastE2(target)
+					else 
+						if target2 then
+							script.CastE2(target2)
+						end
+					end
+				end
 			end
 		end
 	end
