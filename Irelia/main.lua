@@ -42,14 +42,7 @@ script.w = {
 	boundingRadiusMod = 0, 
 	range = 825
 } 
-	
-script.e = {
-	delay = 0.5, 
-	width =70, --originally 70 
-	speed = math.huge, 
-	boundingRadiusMod = 1,
-	range = 900
-}
+
 	
 script.e_parameters = {
 	e1Pos = vec3(0,0,0),
@@ -58,6 +51,15 @@ script.e_parameters = {
 	missileSpeed = 2000,
 	delayFloor = 0.5
 }
+	
+script.e = {
+	delay = script.e_parameters.delayFloor, 
+	width =70, --originally 70 
+	speed = math.huge, 
+	boundingRadiusMod = 1,
+	range = 900
+}
+
 	
 script.e_obj = nil
 
@@ -70,8 +72,19 @@ script.r = {
 	collision = {hero = true, minion = false}, 
 	range = 700
 }
+
+script.debug = {
+	e1Pos = vec3(0,0,0),
+	e2Pred = vec3(0,0,0),
+	closest = vec3(0,0,0),
+	e2Cast = vec3(0,0,0),
+	targetPosAtCast = vec3(0,0,0),
+	targetPathEnd = vec3(0,0,0),
+	actual = vec3(0,0,0),
+	target = nil
+}
 	
-script.interruptSpells = { --add sion q
+script.interruptSpells = { --add jhin ult
 	"caitlynaceinthehole", 
 	"drain", 
 	"crowstorm", 
@@ -269,21 +282,27 @@ local function TraceFilter(seg, obj, spell, slow)
 	if gpred.trace.linear.hardlock(spell, seg, obj) then
 		return true
 	end
+	
 	if gpred.trace.linear.hardlockmove(spell, seg, obj) then
 		return true
 	end
+	
 	if not obj.path.isActive then
 		if spell.range < seg.startPos:dist(obj.pos2D) + (obj.moveSpeed * 0.333) then
 			return false
 		end
 	end
+	
 	if not slow then
 		return true
 	end
+	
 	if gpred.trace.newpath(obj, 0.033, 0.500) then
 		return true
 	end
 end	
+
+
 	
 function script.CastQ(target)
 	if player:spellSlot(0).state == 0 and player.pos:dist(target.pos) <= script.q.range then
@@ -374,11 +393,13 @@ function script.CastE1(target)
 				script.e_parameters.target2 = target
 				script.e_parameters.nextCast = os.clock() + 0.25
 			end
+			
 		else
 			local pathStartPos = target.path.point[0]
 			local pathEndPos = target.path.point[target.path.count]
 			local pathNorm = (pathEndPos - pathStartPos):norm()
 			local tempPred = common.GetPredictedPos(target, 1)
+			
 			if tempPred then
 				local dist1 = player.pos:dist(tempPred)
 				if dist1 <= script.e.range then
@@ -388,14 +409,16 @@ function script.CastE1(target)
 					end
 					local enough = false
 					local cast2 = RaySetDist(target.pos, pathNorm, player.pos, script.e.range)
-					if target.pos:dist(cast2) >= target.moveSpeed * script.e_parameters.delayFloor then
-						enough = true	
+					
+					if target.pos:dist(cast2) >= target.moveSpeed * script.e_parameters.delayFloor*1.5 then
+						enough = true						
 					else
 						cast2 = RaySetDist(target.pos, -1*pathNorm, player.pos, script.e.range)
-						if target.pos:dist(cast2) >= target.moveSpeed * script.e_parameters.delayFloor then
+						if target.pos:dist(cast2) >= target.moveSpeed * script.e_parameters.delayFloor*1.5 then
 							enough = true
 						end
 					end
+					
 					if enough then
 						player:castSpell("pos", 2, cast2)
 						script.e_parameters.e1Pos = cast2
@@ -407,43 +430,6 @@ function script.CastE1(target)
 		end
 	end
 end
-
---[[function script.CastE1(target) 
-	if player:spellSlot(2).state == 0 then
-		if not target.path.isActive then
-			if target.pos:dist(player.pos) <= script.e.range then
-				local cast1 = player.pos + (target.pos-player.pos):norm()*script.e.range
-				player:castSpell("pos", 2, cast1)
-				script.e_parameters.e1Pos = cast1
-				script.e_parameters.target2 = target
-				script.e_parameters.nextCast = os.clock() + 0.25
-			end
-		else
-			local pathStartPos = target.path.point[0]
-			local pathEndPos = target.path.point[target.path.count]
-			local pathNorm = (pathEndPos - pathStartPos):norm()
-			local tempPred = common.GetPredictedPos(target, 1)
-			if tempPred and player.pos:dist(tempPred) <= script.e.range then
-				local castPos1 = RaySetDist(target.pos, pathNorm, player.pos, script.e.range)
-				local castPos2 = RaySetDist(target.pos, -1*pathNorm, player.pos, script.e.range)
-				local dist1 = tempPred:dist(castPos1)
-				local dist2 = tempPred:dist(castPos2)
-				local cast2 = player.pos --some value
-				if dist1 >= dist2 then
-					cast2 = castPos1
-				else
-					cast2 = castPos2
-				end
-				player:castSpell("pos", 2, cast2)
-				script.e_parameters.e1Pos = cast2
-				script.e_parameters.nextCast = os.clock() + 0.25
-				script.e_parameters.target2 = target
-			end
-		end
-	end
-end]]
-
-
 
 function script.MultiE1(target, nextTarget) 
 	if player:spellSlot(2).state == 0 then
@@ -460,67 +446,123 @@ function script.MultiE1(target, nextTarget)
 	end
 end
 
+function setDebug(target, e2Cast, e2Pred, closest)
+	script.debug.e1Pos = script.e_parameters.e1Pos*1
+	script.debug.targetPosAtCast = target.pos*1
+	script.debug.targetPathEnd = target.path.point[target.path.count]*1
+	script.debug.e2Cast = e2Cast
+	script.debug.e2Pred = e2Pred
+	script.debug.closest = closest
+end
+
+function resetE()
+	script.e_parameters.e1Pos = vec3(0,0,0)
+	script.e_parameters.target2 = nil
+	script.e_parameters.nextCast = os.clock() + 0.25
+end
+
+function getClosestPoint(pA, pB, center)
+	local diff = (pA-pB):norm()
+	local pathNorm = vec2(diff.x, diff.z)
+	local perpenVec = vec2(-pathNorm.y, pathNorm.x)	
+	
+	--mx+b of line A to B
+	local m = (pB.z - pA.z)/(pB.x - pA.x)
+	local b = pB.z - m * pB.x
+	if perpenVec.y - m*perpenVec.x ~= 0 then
+		local l = (m*center.x + b - center.z)/(perpenVec.y - m*perpenVec.x)
+		return vec2(center.x, center.z) + perpenVec*l
+	end
+end
+
 function script.CastE2(target)
-	if player:spellSlot(2).state == 0 then --delay e for now
+	if player:spellSlot(2).state == 0 then
+	local castMode = 0
 		if target.path.isActive and target.path.isDashing then
 			local dashPos = gpred.core.project(player.path.serverPos2D, target.path, network.latency + script.e_parameters.delayFloor,script.e_parameters.missileSpeed, target.path.dashSpeed)
 			if dashPos and player.pos2D:dist(dashPos) <= script.e.range then
 				player:castSpell("pos", 2, vec3(dashPos.x, target.pos.y, dashPos.y))
-				script.e_parameters.e1Pos = vec3(0,0,0)
-				script.e_parameters.target2 = nil
-				script.e_parameters.nextCast = os.clock() + 0.25
+				setDebug(target, vec3(dashPos.x, target.pos.y, dashPos.y)*1, vec3(dashPos.x, target.pos.y, dashPos.y)*1,vec3(0,0,0))
+				resetE()
+				print ("5")
 			end
+			
 		else
-			local short1 = false
-			local short2 = false
-			script.e.delay = script.e_parameters.delayFloor + player.pos:dist(target.pos)/script.e_parameters.missileSpeed
-			local seg1 = gpred.linear.get_prediction(script.e, target, vec2(script.e_parameters.e1Pos.x,script.e_parameters.e1Pos.y ))
-			--local tempPos = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
-			--local predPos3D1 = script.e_parameters.e1Pos:lerp(tempPos,(tempPos:dist(script.e_parameters.e1Pos)+script.e.radius)/tempPos:dist(script.e_parameters.e1Pos))
-			local predPos3D1 = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
-			local predPos1 = vec2(seg1.endPos.x, seg1.endPos.y)
-			if seg1 and player.pos2D:dist(predPos1)<=script.e.range then
-				local e1Pos2D = vec2(script.e_parameters.e1Pos.x, script.e_parameters.e1Pos.y)
-				local tempCastPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos1)
-				local tempCastPos3D = vec3(tempCastPos.x, target.pos.y, tempCastPos.y)
-				if tempCastPos3D:dist(player.pos)>script.e.range or predPos3D1:dist(script.e_parameters.e1Pos) > tempCastPos3D:dist(script.e_parameters.e1Pos) then 
-					--tempCastPos3D = vec3(predPos1.x, target.pos.y, predPos1.y)
-					short1 = true
-					local pathNorm = (predPos3D1-script.e_parameters.e1Pos):norm()
-					local extendPos = script.e_parameters.e1Pos + pathNorm*(predPos3D1:dist(script.e_parameters.e1Pos)+target.moveSpeed*script.e_parameters.delayFloor)
-					if player.pos:dist(extendPos)<script.e.range then
-						tempCastPos3D = extendPos
-					else
-						tempCastPos3D = RaySetDist(script.e_parameters.e1Pos, pathNorm, player.pos, script.e.range)
-					end
+			if not target.path.isActive then
+				local inActive = script.e_parameters.e1Pos + (target.pos-script.e_parameters.e1Pos):norm()*(target.pos:dist(script.e_parameters.e1Pos)+target.moveSpeed*script.e_parameters.delayFloor*2)
+				if target.pos:dist(player.pos) < script.e.range then 
+					player:castSpell("pos", 2, inActive)
+					setDebug(target, inActive*1,target.pos*1, vec3(0,0,0))
+					resetE()
+					print ("6")
 				end
-				if tempCastPos3D then
-					script.e.delay = script.e_parameters.delayFloor + player.pos:dist(tempCastPos3D)/script.e_parameters.missileSpeed
-					local seg2 = gpred.linear.get_prediction(script.e, target, vec2(script.e_parameters.e1Pos.x,script.e_parameters.e1Pos.y ))
-					local predPos3D2 = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
-					--tempPos = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
-					--local predPos3D2 = script.e_parameters.e1Pos:lerp(tempPos,(tempPos:dist(script.e_parameters.e1Pos)+script.e.radius)/tempPos:dist(script.e_parameters.e1Pos))
-					local predPos2 = vec2(seg2.endPos.x, seg2.endPos.y)
-					if seg2 and TraceFilter(seg2, target,script.e, true) then
-						local castPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos2)
-						local castPos3D = vec3(castPos.x, target.pos.y, castPos.y)
-						if castPos3D:dist(player.pos)>script.e.range or predPos3D2:dist(script.e_parameters.e1Pos) > castPos3D:dist(script.e_parameters.e1Pos) then 
-							--castPos3D = predPos3D2
-							short2 = true
-							--temp code
-							pathNorm = (predPos3D2-script.e_parameters.e1Pos):norm()
-							extendPos = script.e_parameters.e1Pos + pathNorm*(predPos3D2:dist(script.e_parameters.e1Pos)+target.moveSpeed*script.e_parameters.delayFloor)
-							if player.pos:dist(extendPos)<script.e.range then
-								castPos3D = extendPos
-							else
-								castPos3D = RaySetDist(script.e_parameters.e1Pos, pathNorm, player.pos, script.e.range)
-							end
+				
+			else
+				local short1 = false
+				local short2 = false
+				script.e.delay = script.e_parameters.delayFloor + player.pos:dist(target.pos)/script.e_parameters.missileSpeed
+				local seg1 = gpred.linear.get_prediction(script.e, target, vec2(script.e_parameters.e1Pos.x,script.e_parameters.e1Pos.y ))
+				--local tempPos = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
+				--local predPos3D1 = script.e_parameters.e1Pos:lerp(tempPos,(tempPos:dist(script.e_parameters.e1Pos)+script.e.radius)/tempPos:dist(script.e_parameters.e1Pos))
+				local predPos3D1 = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
+				local predPos1 = vec2(seg1.endPos.x, seg1.endPos.y)
+				
+				if seg1 and player.pos2D:dist(predPos1)<=script.e.range then
+					if gpred.trace.linear.hardlock(script.e, seg1, target) or gpred.trace.linear.hardlockmove(script.e, seg1, target) then
+						player:castSpell("pos", 2, predPos3D1)
+						setDebug(target, predPos3D1*1,target.pos*1, vec3(0,0,0))
+						resetE()
+						print("4")
+					end
+					local tempCastPos = getClosestPoint(script.e_parameters.e1Pos,predPos3D1, player.pos)
+					local tempCastPos3D = vec3(tempCastPos.x, target.pos.y, tempCastPos.y)
+					
+					if tempCastPos3D:dist(player.pos)>script.e.range or predPos3D1:dist(script.e_parameters.e1Pos) > tempCastPos3D:dist(script.e_parameters.e1Pos) or tempCastPos3D:dist(script.e_parameters.e1Pos) < target.moveSpeed*script.e_parameters.delayFloor*1.5 then 
+						--tempCastPos3D = vec3(predPos1.x, target.pos.y, predPos1.y)
+						short1 = true
+						local pathNorm = (predPos3D1-script.e_parameters.e1Pos):norm()
+						local extendPos = script.e_parameters.e1Pos + pathNorm*(predPos3D1:dist(script.e_parameters.e1Pos)+target.moveSpeed*script.e_parameters.delayFloor*1.5)
+						if player.pos:dist(extendPos)<script.e.range then
+							tempCastPos3D = extendPos
+						else
+							tempCastPos3D = RaySetDist(script.e_parameters.e1Pos, pathNorm, player.pos, script.e.range)
 						end
-						if short1 == short2 then
-							player:castSpell("pos", 2, castPos3D)
-							script.e_parameters.e1Pos = vec3(0,0,0)
-							script.e_parameters.target2 = nil
-							script.e_parameters.nextCast = os.clock() + 0.25
+					end
+					
+					if tempCastPos3D then
+						script.e.delay = script.e_parameters.delayFloor + player.pos:dist(tempCastPos3D)/script.e_parameters.missileSpeed
+						local seg2 = gpred.linear.get_prediction(script.e, target, vec2(script.e_parameters.e1Pos.x,script.e_parameters.e1Pos.y ))
+						local predPos3D2 = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
+						--tempPos = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
+						--local predPos3D2 = script.e_parameters.e1Pos:lerp(tempPos,(tempPos:dist(script.e_parameters.e1Pos)+script.e.radius)/tempPos:dist(script.e_parameters.e1Pos))
+						local predPos2 = vec2(seg2.endPos.x, seg2.endPos.y)
+						
+						if seg2 and TraceFilter(seg2, target,script.e, true) then
+							local castPos = getClosestPoint(script.e_parameters.e1Pos,predPos3D2, player.pos)
+							local castPos3D = vec3(castPos.x, target.pos.y, castPos.y)
+							
+							if castPos3D:dist(player.pos)>script.e.range or predPos3D2:dist(script.e_parameters.e1Pos) > castPos3D:dist(script.e_parameters.e1Pos) or castPos3D:dist(script.e_parameters.e1Pos) <target.moveSpeed*script.e_parameters.delayFloor*1.5 then 
+								--castPos3D = predPos3D2
+								short2 = true
+								--temp code
+								pathNorm = (predPos3D2-script.e_parameters.e1Pos):norm()
+								extendPos = script.e_parameters.e1Pos + pathNorm*(predPos3D2:dist(script.e_parameters.e1Pos)+target.moveSpeed*script.e_parameters.delayFloor*1.5)
+								if player.pos:dist(extendPos)<script.e.range then
+									castPos3D = extendPos
+									castMode = 1
+								else
+									castPos3D = RaySetDist(script.e_parameters.e1Pos, pathNorm, player.pos, script.e.range)
+									castMode = 2
+								end
+							else 
+								castMode = 3
+							end
+							if short1 == short2 then
+								player:castSpell("pos", 2, castPos3D)
+								setDebug(target, castPos3D*1,predPos3D2*1, vec3(tempCastPos.x, target.pos.y, tempCastPos.y))
+								resetE()
+								print (castMode)
+							end
 						end
 					end
 				end
@@ -594,7 +636,6 @@ local function OnTick()
 			bestQ = GetBestQ(game.mousePos)	
 		end
 	end
-	
 
 	if orb.menu.combat:get() then
 		if bestQ ~= nil then
@@ -610,7 +651,7 @@ local function OnTick()
 						script.MultiE1(target2,target)
 					end
 				else
-					if (orb.menu.combat:get() and ((bestQ ~= nil and bestQ.pos:dist(target.pos) < script.menu.erange:get()) or (bestQ == nil and player.pos:dist(target.pos) < script.menu.erange:get() ) or target.moveSpeed < 200 )) or script.menu.e:get() then
+					if (orb.menu.combat:get() and ((bestQ ~= nil and bestQ.pos:dist(target.pos) < script.menu.erange:get()) or (bestQ == nil and player.pos:dist(target.pos) < script.menu.erange:get()))) or script.menu.e:get() then
 						script.CastE1(target)
 					end
 				end
@@ -618,12 +659,15 @@ local function OnTick()
 		else
 			if common.IsValidTarget(script.e_parameters.target2) and player.pos:dist(script.e_parameters.target2.pos)<=script.e.range then
 				script.CastE2(script.e_parameters.target2)
+				script.debug.target=  script.e_parameters.target2
 			else
 				if target then
 					script.CastE2(target)
+					script.debug.target=  target
 				else 
 					if target2 then
 						script.CastE2(target2)
+						script.debug.target=  target2
 					end
 				end
 			end
@@ -637,15 +681,18 @@ local function OnSpell(spell)
 end
 
 local function CreateObj(object)
-	if object.name == "Blade" then 
+	if object.name == "Blade" and object.team == TEAM_ENEMY then 
 		script.e_obj = object
 		script.e_parameters.e1Pos = object.pos
 	end
 end
 
 local function DeleteObj(object)
-	if object.name == "Blade" or object.name == "IreliaESecondary" then
+	if object.name == "IreliaESecondary" and object.team == TEAM_ENEMY then
 		script.e_obj = nil
+		if script.debug.target~= nil then
+			script.debug.actual = script.debug.target.pos*1
+		end
 		script.e_parameters.e1Pos = vec3(0,0,0)
 	end
 end
@@ -662,14 +709,30 @@ end
 	
 local function OnDraw()
 	graphics.draw_circle(game.mousePos, script.menu.searchrange:get(), 1, graphics.argb(255, 255, 255, 255), 50)
-	if script.e_parameters.e1Pos ~= vec3(0,0,0) then
-		graphics.draw_circle(script.e_parameters.e1Pos, 50, 1, graphics.argb(255, 255, 255, 255), 50)
-	end
 	graphics.draw_circle(player.pos, script.e.range, 1, graphics.argb(255, 255, 255, 255), 50)
 
-	--[[if script.e_obj ~= nil then
-		graphics.draw_circle(script.e_obj, 50, 1, graphics.argb(255, 255, 255, 255), 50)
-	end]]
+	if script.debug.e2Pred ~= vec3(0,0,0) then
+		graphics.draw_circle(script.debug.e2Pred, 30, 1, graphics.argb(255, 0, 0, 255), 50)
+	end
+	
+	if script.debug.e2Cast ~= vec3(0,0,0) and script.debug.e1Pos ~= vec3(0,0,0) then
+		graphics.draw_circle(script.debug.e2Cast, 10, 1, graphics.argb(255, 0, 255, 0), 50)
+		graphics.draw_circle(script.debug.e1Pos, 10, 1, graphics.argb(255, 0, 255, 0), 50)
+		graphics.draw_line(script.debug.e1Pos, script.debug.e2Cast, 3, graphics.argb(255, 0, 255, 0))
+	end
+	
+	if script.debug.actual ~= vec3(0,0,0) then
+		graphics.draw_circle(script.debug.actual, 60, 1, graphics.argb(255, 0, 0, 0), 50)
+	end
+	
+	if script.debug.closest ~= vec3(0,0,0) then
+		graphics.draw_circle(script.debug.closest, 30, 1, graphics.argb(255, 255, 0, 0), 50)
+	end
+	
+	if script.debug.targetPosAtCast ~= vec3(0,0,0) and script.debug.targetPathEnd ~= vec3(0,0,0) then
+		graphics.draw_line(script.debug.targetPosAtCast, script.debug.targetPathEnd, 3, graphics.argb(255, 255, 255, 255))
+		graphics.draw_circle(script.debug.targetPathEnd, 20, 1, graphics.argb(255, 255, 255, 255), 50)
+	end
 end
 
 cb.add(cb.updatebuff, OnUpdateBuff)
