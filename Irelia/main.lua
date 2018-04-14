@@ -1,13 +1,7 @@
---[[
-Bugs:
-
--if manual E then press combo too fast, will cast E1 instead of E2
-]]
-
 local script = {}
 script.name = "Irelia"
 script.developer = "asdf"
-script.version = 2.0
+script.version = 2.1
 
 local avada_lib = module.lib('avada_lib')
 if not avada_lib then
@@ -43,7 +37,6 @@ script.w = {
 	range = 825
 } 
 
-	
 script.e_parameters = {
 	e1Pos = vec3(0,0,0),
 	target2 = nil,
@@ -80,8 +73,6 @@ script.debug = {
 	e2Cast = vec3(0,0,0),
 	targetPosAtCast = vec3(0,0,0),
 	targetPathEnd = vec3(0,0,0),
-	actual = vec3(0,0,0),
-	target = nil
 }
 	
 script.interruptSpells = { --add jhin ult
@@ -99,6 +90,29 @@ script.interruptSpells = { --add jhin ult
 	"warwickr",
 	"sionq"
 }
+
+script.dispelSpells = {
+	"vladimirhemoplaguedebuff",
+	"tristanaechargesound",
+	"karmaspiritbind",
+	"karthusfallenone",
+	"leblancsoulshackle",
+	"leblancsoulshacklem",
+	"soulshackles",
+	"zedultexecute",
+	"fizzmarinerdoombomb",
+}
+
+--spells only dodged in combat
+script.lowPrioritySpells = {
+
+}
+
+--CC and high dmg ultimates
+script.highPrioritySpells = {
+
+}
+
 
 passiveBaseScale = {2.5, 2,5, 3.5, 3.5, 4.5, 4.5, 5.5, 5.5, 6,5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5, 13.5, 14.5, 15.5, 16.5}
 passiveADScale = {2,2,2,2,2,2,3,3,3,3,3,3,4,4,4,4,4,4}
@@ -461,20 +475,6 @@ function resetE()
 	script.e_parameters.nextCast = os.clock() + 0.25
 end
 
-function getClosestPoint(pA, pB, center)
-	local diff = (pA-pB):norm()
-	local pathNorm = vec2(diff.x, diff.z)
-	local perpenVec = vec2(-pathNorm.y, pathNorm.x)	
-	
-	--mx+b of line A to B
-	local m = (pB.z - pA.z)/(pB.x - pA.x)
-	local b = pB.z - m * pB.x
-	if perpenVec.y - m*perpenVec.x ~= 0 then
-		local l = (m*center.x + b - center.z)/(perpenVec.y - m*perpenVec.x)
-		return vec2(center.x, center.z) + perpenVec*l
-	end
-end
-
 function script.CastE2(target)
 	if player:spellSlot(2).state == 0 then
 	local castMode = 0
@@ -514,9 +514,9 @@ function script.CastE2(target)
 						resetE()
 						print("4")
 					end
-					local tempCastPos = getClosestPoint(script.e_parameters.e1Pos,predPos3D1, player.pos)
+					local e1Pos2D = vec2(script.e_parameters.e1Pos.x, script.e_parameters.e1Pos.z)
+					local tempCastPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos1)
 					local tempCastPos3D = vec3(tempCastPos.x, target.pos.y, tempCastPos.y)
-					
 					if tempCastPos3D:dist(player.pos)>script.e.range or predPos3D1:dist(script.e_parameters.e1Pos) > tempCastPos3D:dist(script.e_parameters.e1Pos) or tempCastPos3D:dist(script.e_parameters.e1Pos) < target.moveSpeed*script.e_parameters.delayFloor*1.5 then 
 						--tempCastPos3D = vec3(predPos1.x, target.pos.y, predPos1.y)
 						short1 = true
@@ -538,7 +538,7 @@ function script.CastE2(target)
 						local predPos2 = vec2(seg2.endPos.x, seg2.endPos.y)
 						
 						if seg2 and TraceFilter(seg2, target,script.e, true) then
-							local castPos = getClosestPoint(script.e_parameters.e1Pos,predPos3D2, player.pos)
+							local castPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos2)
 							local castPos3D = vec3(castPos.x, target.pos.y, castPos.y)
 							
 							if castPos3D:dist(player.pos)>script.e.range or predPos3D2:dist(script.e_parameters.e1Pos) > castPos3D:dist(script.e_parameters.e1Pos) or castPos3D:dist(script.e_parameters.e1Pos) <target.moveSpeed*script.e_parameters.delayFloor*1.5 then 
@@ -655,19 +655,28 @@ local function OnTick()
 						script.CastE1(target)
 					end
 				end
-			end
+			else 
+				if target2 and script.menu.e:get() and (not target2.buff["ireliamark"] or CanKS(target2)) then
+					script.CastE1(target2)
+				end
+			end	
 		else
-			if common.IsValidTarget(script.e_parameters.target2) and player.pos:dist(script.e_parameters.target2.pos)<=script.e.range then
-				script.CastE2(script.e_parameters.target2)
-				script.debug.target=  script.e_parameters.target2
-			else
-				if target then
-					script.CastE2(target)
-					script.debug.target=  target
-				else 
-					if target2 then
-						script.CastE2(target2)
-						script.debug.target=  target2
+			if orb.menu.combat:get() or script.menu.e:get() then
+				if common.IsValidTarget(script.e_parameters.target2) and player.pos:dist(script.e_parameters.target2.pos)<=script.e.range then
+					if script.e_parameters.target2.buff["ireliamark"] or not CanKS(script.e_parameters.target2) then
+						script.CastE2(script.e_parameters.target2)
+					end
+				else
+					if target then
+						if  target.buff["ireliamark"] or not  CanKS(target) then
+							script.CastE2(target)
+						end
+					else 
+						if target2 then
+							if target2.buff["ireliamark"] or not CanKS(target2) then
+								script.CastE2(target2)
+							end
+						end
 					end
 				end
 			end
@@ -681,18 +690,15 @@ local function OnSpell(spell)
 end
 
 local function CreateObj(object)
-	if object.name == "Blade" and object.team == TEAM_ENEMY then 
+	if object.name == "Blade" and object.team == TEAM_ALLY then 
 		script.e_obj = object
 		script.e_parameters.e1Pos = object.pos
 	end
 end
 
 local function DeleteObj(object)
-	if object.name == "IreliaESecondary" and object.team == TEAM_ENEMY then
+	if object.name == "IreliaESecondary" and object.team == TEAM_ALLY then
 		script.e_obj = nil
-		if script.debug.target~= nil then
-			script.debug.actual = script.debug.target.pos*1
-		end
 		script.e_parameters.e1Pos = vec3(0,0,0)
 	end
 end
@@ -721,10 +727,6 @@ local function OnDraw()
 		graphics.draw_line(script.debug.e1Pos, script.debug.e2Cast, 3, graphics.argb(255, 0, 255, 0))
 	end
 	
-	if script.debug.actual ~= vec3(0,0,0) then
-		graphics.draw_circle(script.debug.actual, 60, 1, graphics.argb(255, 0, 0, 0), 50)
-	end
-	
 	if script.debug.closest ~= vec3(0,0,0) then
 		graphics.draw_circle(script.debug.closest, 30, 1, graphics.argb(255, 255, 0, 0), 50)
 	end
@@ -732,6 +734,10 @@ local function OnDraw()
 	if script.debug.targetPosAtCast ~= vec3(0,0,0) and script.debug.targetPathEnd ~= vec3(0,0,0) then
 		graphics.draw_line(script.debug.targetPosAtCast, script.debug.targetPathEnd, 3, graphics.argb(255, 255, 255, 255))
 		graphics.draw_circle(script.debug.targetPathEnd, 20, 1, graphics.argb(255, 255, 255, 255), 50)
+	end
+	
+	if script.e_parameters.e1Pos ~= vec3(0,0,0) then
+		graphics.draw_circle(script.e_parameters.e1Pos, 20, 1, graphics.argb(255, 255, 255, 255), 50)
 	end
 end
 
