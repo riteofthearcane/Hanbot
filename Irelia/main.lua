@@ -631,7 +631,7 @@ function WBlock()
 	if evade then 	
 		for _, spell in pairs(evade.core.active_spells) do
 			if type(spell) == "table" and blockSpells[spell.name:lower()] then
-			--print(spell.name)
+				if spell.polygon then--print(spell.name)
 					if spell.missile and spell.missile.speed then 
 						if spell.polygon:Contains(player.path.serverPos) then
 							local hitTime = (player.path.serverPos:dist(spell.missile.pos)-player.boundingRadius)/spell.missile.speed
@@ -781,7 +781,6 @@ function CastE2(target)
 				setDebug(target, vec3(dashPos.x, target.pos.y, dashPos.y)*1, vec3(dashPos.x, target.pos.y, dashPos.y)*1,vec3(0,0,0))
 				resetE()
 			end
-			
 		else
 			if not target.path.isActive then
 				local inActive = e_parameters.e1Pos + (target.pos-e_parameters.e1Pos):norm()*(target.pos:dist(e_parameters.e1Pos)+target.moveSpeed*e_parameters.delayFloor*1.5)
