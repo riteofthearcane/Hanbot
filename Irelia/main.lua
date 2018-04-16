@@ -629,12 +629,10 @@ end
 
 function WBlock()
 	if evade then 	
-		-- for _, spell in pairs(evade.core.active_spells) do
+		for _, spell in pairs(evade.core.active_spells) do
 			if type(spell) == "table" and blockSpells[spell.name:lower()] then
 			--print(spell.name)
-				if spell.polygon then
 					if spell.missile and spell.missile.speed then 
-						print(spell.name)
 						if spell.polygon:Contains(player.path.serverPos) then
 							local hitTime = (player.path.serverPos:dist(spell.missile.pos)-player.boundingRadius)/spell.missile.speed
 							if hitTime > 0 and hitTime < 0.10 and EvalPriority(spell) then
@@ -642,7 +640,6 @@ function WBlock()
 							end
 						end
 					else
-						print(spell.name)
 						if w_parameters.nonMissileCheck[spell.name:lower()] then
 							if w_parameters.nonMissileCheck[spell.name:lower()] <= os.clock() and EvalPriority(spell) and spell.polygon:Contains(player.path.serverPos) then
 								return true
@@ -777,14 +774,12 @@ end
 
 function CastE2(target)
 	if player:spellSlot(2).state == 0 then
-	local castMode = 0
 		if target.path.isActive and target.path.isDashing then
 			local dashPos = gpred.core.project(player.path.serverPos2D, target.path, network.latency + e_parameters.delayFloor,e_parameters.missileSpeed, target.path.dashSpeed)
 			if dashPos and player.pos2D:dist(dashPos) <= e.range then
 				player:castSpell("pos", 2, vec3(dashPos.x, target.pos.y, dashPos.y))
 				setDebug(target, vec3(dashPos.x, target.pos.y, dashPos.y)*1, vec3(dashPos.x, target.pos.y, dashPos.y)*1,vec3(0,0,0))
 				resetE()
-				print ("5")
 			end
 			
 		else
@@ -794,7 +789,6 @@ function CastE2(target)
 					player:castSpell("pos", 2, inActive)
 					setDebug(target, inActive*1,target.pos*1, vec3(0,0,0))
 					resetE()
-					print ("6")
 				end
 				
 			else
@@ -812,7 +806,6 @@ function CastE2(target)
 						player:castSpell("pos", 2, predPos3D1)
 						setDebug(target, predPos3D1*1,target.pos*1, vec3(0,0,0))
 						resetE()
-						print("4")
 					end
 					local e1Pos2D = vec2(e_parameters.e1Pos.x, e_parameters.e1Pos.z)
 					local tempCastPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos1)
@@ -849,19 +842,14 @@ function CastE2(target)
 								extendPos = e_parameters.e1Pos + pathNorm*(predPos3D2:dist(e_parameters.e1Pos)+target.moveSpeed*e_parameters.delayFloor*1.5)
 								if player.pos:dist(extendPos)<e.range then
 									castPos3D = extendPos
-									castMode = 1
 								else
 									castPos3D = RaySetDist(e_parameters.e1Pos, pathNorm, player.pos, e.range)
-									castMode = 2
-								end
-							else 
-								castMode = 3
+								end 
 							end
 							if short1 == short2 then
 								player:castSpell("pos", 2, castPos3D)
 								setDebug(target, castPos3D*1,predPos3D2*1, vec3(tempCastPos.x, target.pos.y, tempCastPos.y))
 								resetE()
-								print (castMode)
 							end
 						end
 					end
