@@ -104,219 +104,217 @@ interruptSpells = { --add jhin ult
 
 blockSpells = { --add passives like braum and talon
 	["aatroxq"] = {priority = "high", delay = 0.55},
-	["aatroxe"] = {priority = "low", delay = 0.1},
-	["ahriorbofdeception"] = {priority = "low", delay = 0.1},
-	["akalimota"] = {priority = "low", delay = 0.1},
-	["ahriseduce"] = {priority = "high", delay = 0.1},
+	["aatroxe"] = {priority = "low", delay = 0},
+	["ahriorbofdeception"] = {priority = "low", delay = 0},
+	["akalimota"] = {priority = "low", delay = 0},
+	["ahriseduce"] = {priority = "high", delay = 0},
 	["pulverize"] = {priority = "high", delay = 0},
-	["headbutt"] = {priority = "high", delay = 0.1},
-	["bandagetoss"] = {priority = "count", delay = 0.1},
-	["curseofthesadmummy"] = {priority = "high", delay = 0.1},
-	["flashfrost"] = {priority = "high", delay = 0.1},
-	["frostbite"] = {priority = "low", delay = 0.1},
-	["disintegrate"] = {priority = "low", delay = 0.1},
-	["infernalguardian"] = {priority = "high", delay = 0.1},
-	["enchantedcrystalarrow"] = {priority = "high", delay = 0.1},
-	["aurelionsolq"] = {priority = "high", delay = 0.1},
-	["aurelionsolr"] = {priority = "high", delay = 0.1},
-	["azirr"] = {priority = "high", delay = 0.1},
-	["bardq"] = {priority = "high", delay = 0.1},
-	["rocketgrab"] = {priority = "high", delay = 0.1},
-	["powerfist"] = {priority = "high", delay = 0.1},
-	["staticfield"] = {priority = "low", delay = 0.1},
-	["brandq"] = {priority = "high", delay = 0.1}, --check for buff
-	["braumbasicattackpassiveoverride"] = {priority = "high", delay = 0.1},
-	["braumrwrapper"] = {priority = "high", delay = 0.1},
-	["caitlynheadshotmissile"] = {priority = "low", delay = 0.1},
-	["caitlynpiltoverpeacemaker"] = {priority = "low", delay = 0.1},
+	["headbutt"] = {priority = "high", delay = 0},
+	["bandagetoss"] = {priority = "count", delay = 0},
+	["curseofthesadmummy"] = {priority = "high", delay = 0},
+	["flashfrost"] = {priority = "high", delay = 0},
+	["frostbite"] = {priority = "low", delay = 0},
+	["disintegrate"] = {priority = "low", delay = 0},
+	["infernalguardian"] = {priority = "high", delay = 0},
+	["enchantedcrystalarrow"] = {priority = "high", delay = 0},
+	["aurelionsolq"] = {priority = "high", delay = 0},
+	["aurelionsolr"] = {priority = "high", delay = 0},
+	["azirr"] = {priority = "high", delay = 0},
+	["bardq"] = {priority = "high", delay = 0},
+	["rocketgrab"] = {priority = "high", delay = 0},
+	["powerfist"] = {priority = "high", delay = 0},
+	["staticfield"] = {priority = "low", delay = 0},
+	["brandq"] = {priority = "high", delay = 0}, --check for buff
+	["braumbasicattackpassiveoverride"] = {priority = "high", delay = 0},
+	["braumrwrapper"] = {priority = "high", delay = 0},
+	["caitlynheadshotmissile"] = {priority = "low", delay = 0},
+	["caitlynpiltoverpeacemaker"] = {priority = "low", delay = 0},
 	["caitlynaceinthehole"] = {priority = "high", delay = 1},
-	["camilleq"] = {priority = "high", delay = 0.1}, --check back
-	["camillew"] = {priority = "low", delay = 0.1}, --check
-	["camillee"] = {priority = "high", delay = 0.1}, --check
+	["camilleq"] = {priority = "high", delay = 0}, --check back
+	["camillew"] = {priority = "low", delay = 0}, --check
+	["camillee"] = {priority = "high", delay = 0}, --check
 	["cassiopeiar"] = {priority = "high", delay = 0.4}, 
 	["rupture"] = {priority = "high", delay = 1.0}, 
 	["phosphorusbomb"] = {priority = "low", delay = 0.4}, 
-	["missilebarrage2"] = {priority = "low", delay = 0.1}, 
-	["dariuscleave"] = {priority = "low", delay = 0.55}, 
-	["dariusaxegrabcone"] = {priority = "count", delay = 0.12}, 
-	["dariusexecute"] = {priority = "high", delay = 0.1}, 
-	["dianabasicattack3"] = {priority = "low", delay = 0.1}, 
-	["dianaarc"] = {priority = "low", delay = 0.1}, 
-	["dianavortex"] = {priority = "high", delay = 0.1}, 
-	["dravendoubleshot"] = {priority = "high", delay = 0.1}, 
-	["dravenrcast"] = {priority = "low", delay = 0.1}, 
-	["masochismattack"] = {priority = "low", delay = 0.1}, 
-	["ekkobasicattackp3"] = {priority = "low", delay = 0.1}, 
-	["ekkor"] = {priority = "high", delay = 0.1}, 
-	["elisehumanq"] = {priority = "low", delay = 0.1}, 
-	["elisehumane"] = {priority = "high", delay = 0.1}, 
-	["elisehumane"] = {priority = "high", delay = 0.1}, 
-	["evelynnr"] = {priority = "high", delay = 0.1}, 
-	["ezrealtrueshotbarrage"] = {priority = "low", delay = 0.1}, 
-	["terrify"] = {priority = "high", delay = 0.1}, 
-	["crowstorm"] = {priority = "high", delay = 0.1}, --check
-	["galiow"] = {priority = "high", delay = 0.1}, --check
-	["galioe"] = {priority = "high", delay = 0.1},
+	["missilebarrage2"] = {priority = "low", delay = 0}, 
+	["dariuscleave"] = {priority = "high", delay = 0.55}, 
+	["dariusexecute"] = {priority = "high", delay = 0}, 
+	["dianabasicattack3"] = {priority = "low", delay = 0}, 
+	["dianaarc"] = {priority = "low", delay = 0}, 
+	["dianavortex"] = {priority = "high", delay = 0}, 
+	["dravendoubleshot"] = {priority = "high", delay = 0}, 
+	["dravenrcast"] = {priority = "low", delay = 0}, 
+	["masochismattack"] = {priority = "low", delay = 0}, 
+	["ekkobasicattackp3"] = {priority = "low", delay = 0}, 
+	["ekkor"] = {priority = "high", delay = 0}, 
+	["elisehumanq"] = {priority = "low", delay = 0}, 
+	["elisehumane"] = {priority = "high", delay = 0}, 
+	["elisehumane"] = {priority = "high", delay = 0}, 
+	["evelynnr"] = {priority = "high", delay = 0}, 
+	["ezrealtrueshotbarrage"] = {priority = "low", delay = 0}, 
+	["terrify"] = {priority = "high", delay = 0}, 
+	["crowstorm"] = {priority = "high", delay = 0}, --check
+	["galiow"] = {priority = "high", delay = 0}, --check
+	["galioe"] = {priority = "high", delay = 0},
 	["galior"] = {priority = "high", delay = 1.35},
-	["fizzw"] = {priority = "low", delay = 0.1}, --check
-	["fizzjumptwo"] = {priority = "low", delay = 0.1}, 
-	["parley"] = {priority = "low", delay = 0.1}, 
+	["fizzw"] = {priority = "low", delay = 0}, --check
+	["fizzjumptwo"] = {priority = "low", delay = 0}, 
+	["parley"] = {priority = "low", delay = 0}, 
 	--barrel q
-	["garenqattack"] = {priority = "low", delay = 0.1}, 
-	["garenr"] = {priority = "high", delay = 0.1}, 
+	["garenqattack"] = {priority = "low", delay = 0}, 
+	["garenr"] = {priority = "high", delay = 0}, 
 	["gnarbigw"] = {priority = "high", delay = 0.3}, 
-	["gnarr"] = {priority = "high", delay = 0.1}, 
-	["gragase"] = {priority = "high", delay = 0.1}, 
-	["gragasr"] = {priority = "high", delay = 0.1}, 
+	["gnarr"] = {priority = "high", delay = 0}, 
+	["gragase"] = {priority = "high", delay = 0}, 
+	["gragasr"] = {priority = "high", delay = 0}, 
 	--graves q back
-	["graveschargeshot"] = {priority = "high", delay = 0.1}, 
-	["hecarimrampattack"] = {priority = "high", delay = 0.1},
-	["hecarimultmissile"] = {priority = "high", delay = 0.1}, 	
-	["heimerdingere"] = {priority = "high", delay = 0.1}, 
+	["graveschargeshot"] = {priority = "high", delay = 0}, 
+	["hecarimrampattack"] = {priority = "high", delay = 0},
+	["hecarimultmissile"] = {priority = "high", delay = 0}, 	
+	["heimerdingere"] = {priority = "high", delay = 0}, 
 	["illaoiq"] = {priority = "high", delay = 0.55}, 
-	["illaoiwattack"] = {priority = "high", delay = 0.1}, 
-	--tentacle hit
+	["illaoiwattack"] = {priority = "high", delay = 0}, 
 	--irelia e detonate
-	["ireliar"] = {priority = "high", delay = 0.1}, 
-	["howlinggale"] = {priority = "count", delay = 0.1}, 
-	["reapthewhirlwind"] = {priority = "count", delay = 0.1}, 
-	["jarvanivdragonstrike2"] = {priority = "high", delay = 0.1}, --check for knockup
-	["jarvanivcataclysm"] = {priority = "high", delay = 0.1},
-	["jaxempowertwo"] = {priority = "low", delay = 0.1},
-	["jaycetotheskies"] = {priority = "low", delay = 0.1},
-	["jayceshockblast"] = {priority = "low", delay = 0.1},
-	["jayceshockblastwallmis"] = {priority = "high", delay = 0.1},
-	["jinxr"] = {priority = "high", delay = 0.1},
+	["ireliar"] = {priority = "high", delay = 0}, 
+	["howlinggale"] = {priority = "count", delay = 0}, 
+	["reapthewhirlwind"] = {priority = "count", delay = 0}, 
+	["jarvanivdragonstrike2"] = {priority = "high", delay = 0}, --check for knockup
+	["jarvanivcataclysm"] = {priority = "high", delay = 0},
+	["jaxempowertwo"] = {priority = "low", delay = 0},
+	["jaycetotheskies"] = {priority = "low", delay = 0},
+	["jayceshockblast"] = {priority = "low", delay = 0},
+	["jayceshockblastwallmis"] = {priority = "high", delay = 0},
+	["jinxr"] = {priority = "high", delay = 0},
 	--jhin 4th shot
 	["jhinw"] = {priority = "high", delay = 0.4}, --check buff
 	["jhinr"] = {priority = "high", delay = 0.4}, --4th shot missile = "jhinrshotmis4"
 	["karthusfallenone"] = {priority = "high", delay = 2},
-	["nulllance"] = {priority = "low", delay = 0.1},
-	["katarinar"] = {priority = "low", delay = 0.1},
-	["kennenshurikenhurlmissile1"] = {priority = "low", delay = 0.1},
-	["khazixq"] = {priority = "low", delay = 0.1},
-	["khazixqlong"] = {priority = "low", delay = 0.1},
+	["nulllance"] = {priority = "low", delay = 0},
+	["katarinar"] = {priority = "low", delay = 0},
+	["kennenshurikenhurlmissile1"] = {priority = "low", delay = 0},
+	["khazixq"] = {priority = "high", delay = 0},
+	["khazixqlong"] = {priority = "high", delay = 0},
 	--kled q yank
 	--kled r damage portion
-	["blindmonkqtwo"] = {priority = "low", delay = 0.1},
-	["blindmonkrkick"] = {priority = "high", delay = 0.1},
-	["leonashieldofdaybreak"] = {priority = "high", delay = 0.1},
+	["blindmonkqtwo"] = {priority = "low", delay = 0},
+	["blindmonkrkick"] = {priority = "high", delay = 0},
+	["leonashieldofdaybreak"] = {priority = "high", delay = 0},
 	["leonazenithblade"] = {priority = "high", delay = 0},
 	["leonasolarflare"] = {priority = "high", delay = 0.425},
-	["lissandraq"] = {priority = "low", delay = 0.1},
-	["lissandrar"] = {priority = "high", delay = 0.1},
-	["lucianq"] = {priority = "low", delay = 0.1},
-	["luluwtwo"] = {priority = "high", delay = 0.1},
+	["lissandraq"] = {priority = "low", delay = 0},
+	["lissandrar"] = {priority = "high", delay = 0},
+	["lucianq"] = {priority = "low", delay = 0},
+	["luluwtwo"] = {priority = "high", delay = 0},
 	--lulur
-	["luxlightbinding"] = {priority = "high", delay = 0.1},
+	["luxlightbinding"] = {priority = "high", delay = 0},
 	["luxmalicecannon"] = {priority = "high", delay = 0.9},
-	["seismicshard"] = {priority = "low", delay = 0.1},
-	["ufslash"] = {priority = "high", delay = 0.1},
-	["malzaharr"] = {priority = "high", delay = 0.1},
-	["maokaiq"] = {priority = "high", delay = 0.1},
-	["maokaiw"] = {priority = "count", delay = 0.1},
-	["maokair"] = {priority = "count", delay = 0.1},
-	["masteryidoublestrike"] = {priority = "low", delay = 0.1},
+	["seismicshard"] = {priority = "low", delay = 0},
+	["ufslash"] = {priority = "high", delay = 0},
+	["malzaharr"] = {priority = "high", delay = 0},
+	["maokaiq"] = {priority = "high", delay = 0},
+	["maokaiw"] = {priority = "count", delay = 0},
+	["maokair"] = {priority = "count", delay = 0},
+	["masteryidoublestrike"] = {priority = "low", delay = 0},
 	--mf 2nd q
-	["mordekaiserqattack2"] = {priority = "low", delay = 0.1},
-	["mordekaiserchildrenofthegrave"] = {priority = "high", delay = 0.1}, --need to test
-	["darkbindingmissile"] = {priority = "high", delay = 0.1}, 
-	["namiqmissile"] = {priority = "high", delay = 0.1},
-	["namirmissile"] = {priority = "count", delay = 0.1},
-	["nasusqattack"] = {priority = "low", delay = 0.1}, 
-	["nautilusravagestrikeattack"] = {priority = "high", delay = 0.1}, 
-	["nautilusanchordrag"] = {priority = "low", delay = 0.1}, 
+	["mordekaiserqattack2"] = {priority = "low", delay = 0},
+	["mordekaiserchildrenofthegrave"] = {priority = "high", delay = 0}, --need to test
+	["darkbindingmissile"] = {priority = "high", delay = 0}, 
+	["namiqmissile"] = {priority = "high", delay = 0},
+	["namirmissile"] = {priority = "count", delay = 0},
+	["nasusqattack"] = {priority = "low", delay = 0}, 
+	["nautilusravagestrikeattack"] = {priority = "high", delay = 0}, 
+	["nautilusanchordrag"] = {priority = "low", delay = 0}, 
 	--naut r
-	["javelintoss"] = {priority = "low", delay = 0.1},
-	["nidaleetakedownattack"] = {priority = "high", delay = 0.1},
-	["olafrecklessstrike"] = {priority = "low", delay = 0.1},
+	["javelintoss"] = {priority = "low", delay = 0},
+	["nidaleetakedownattack"] = {priority = "high", delay = 0},
+	["olafrecklessstrike"] = {priority = "low", delay = 0},
 	["orianadissonancecommand"] = {priority = "high", delay = 0.4}, 
 	["orianadetonatecommand"] = {priority = "high", delay = 0.4}, 
-	["ornnw"] = {priority = "low", delay = 0.1}, --check 
-	["ornne"] = {priority = "high", delay = 0.1}, --check
-	["ornnr"] = {priority = "high", delay = 0.1}, 
-	["pantheonq"] = {priority = "low", delay = 0.1}, 
-	["pantheonw"] = {priority = "high", delay = 0.1}, 
-	["poppypassiveattack"] = {priority = "low", delay = 0.1}, 
-	["poppye"] = {priority = "high", delay = 0.1}, 
-	["quinnq"] = {priority = "low", delay = 0.1}, 
-	["quinne"] = {priority = "high", delay = 0.1}, 
-	["rakanw"] = {priority = "high", delay = 0.1}, --check delay 
+	["ornnw"] = {priority = "low", delay = 0}, --check 
+	["ornne"] = {priority = "high", delay = 0}, --check
+	["ornnr"] = {priority = "high", delay = 0}, 
+	["pantheonq"] = {priority = "low", delay = 0}, 
+	["pantheonw"] = {priority = "high", delay = 0}, 
+	["poppypassiveattack"] = {priority = "low", delay = 0}, 
+	["poppye"] = {priority = "high", delay = 0}, 
+	["quinnq"] = {priority = "low", delay = 0}, 
+	["quinne"] = {priority = "high", delay = 0}, 
+	["rakanw"] = {priority = "high", delay = 1.0}, --check delay 
 	--rammus q
-	["puncturingtaunt"] = {priority = "high", delay = 0.1}, 
-	["reksaiwburrowed"] = {priority = "high", delay = 0.1}, 
-	["reksaie"] = {priority = "low", delay = 0.1}, 
-	["reksairwrapper"] = {priority = "high", delay = 0.1}, 
-	["renektonexecute"] = {priority = "high", delay = 0.1}, 
-	["renektonsuperexecute"] = {priority = "high", delay = 0.1}, 
-	["rengarq"] = {priority = "low", delay = 0.1}, 
+	["puncturingtaunt"] = {priority = "high", delay = 0}, 
+	["reksaiwburrowed"] = {priority = "high", delay = 0}, 
+	["reksaie"] = {priority = "low", delay = 0}, 
+	["reksairwrapper"] = {priority = "high", delay = 0},  --work
+	["renektonexecute"] = {priority = "high", delay = 0}, --work
+	["renektonsuperexecute"] = {priority = "high", delay = 0}, 
+	["rengarq"] = {priority = "low", delay = 0}, 
 	--riven third q
-	["rivenizunablade"] = {priority = "high", delay = 0.1}, 
-	["ryzeqwrapper"] = {priority = "low", delay = 0.1}, --check for e
+	["rivenizunablade"] = {priority = "high", delay = 0}, 
+	["ryzeqwrapper"] = {priority = "low", delay = 0}, --check for e
 	["ryzew"] = {priority = "high", delay = 0}, 
-	["sejuanie"] = {priority = "high", delay = 0.1}, 
-	["sejuanir"] = {priority = "high", delay = 0.1}, 
+	["sejuanie"] = {priority = "high", delay = 0}, 
+	["sejuanir"] = {priority = "high", delay = 0}, 
 	--shen q autos
-	["shene"] = {priority = "high", delay = 0.1}, 
-	["shyvanadoubleattack"] = {priority = "low", delay = 0.1}, 
-	["shyvanadoubleattackdragon"] = {priority = "low", delay = 0.1}, 
-	["shyvanafireball"] = {priority = "low", delay = 0.1}, 
-	["shyvanafireballdragon2"] = {priority = "low", delay = 0.1}, 
-	["shyvanatransformcast"] = {priority = "high", delay = 0.1}, 
-	["fling"] = {priority = "high", delay = 0.1}, 
-	["sionq"] = {priority = "low", delay = 0.1}, 
-	["sionr"] = {priority = "high", delay = 0.1}, 
-	["skarnerimpale"] = {priority = "high", delay = 0.1}, 
-	["sonar"] = {priority = "high", delay = 0.1}, 
+	["shene"] = {priority = "high", delay = 0}, 
+	["shyvanadoubleattack"] = {priority = "low", delay = 0}, 
+	["shyvanadoubleattackdragon"] = {priority = "low", delay = 0}, 
+	["shyvanafireball"] = {priority = "low", delay = 0}, 
+	["shyvanafireballdragon2"] = {priority = "low", delay = 0}, 
+	["shyvanatransformcast"] = {priority = "high", delay = 0}, 
+	["fling"] = {priority = "high", delay = 0}, 
+	["sionq"] = {priority = "low", delay = 0}, 
+	["sionr"] = {priority = "high", delay = 0}, 
+	["skarnerimpale"] = {priority = "high", delay = 0}, 
+	["sonar"] = {priority = "high", delay = 0}, 
 	--need new swain
 	--syndra stun
 	["syndraq"] = {priority = "low", delay = 0.4}, 	
-	["syndrawcast"] = {priority = "low", delay = 0.1}, 	
-	["syndrae"] = {priority = "high", delay = 0.1}, 	
-	["syndrar"] = {priority = "high", delay = 0.1}, 	
+	["syndrawcast"] = {priority = "low", delay = 0}, 	
+	["syndrae"] = {priority = "high", delay = 0}, 	
+	["syndrar"] = {priority = "high", delay = 0}, 	
 	["taliyahwvc"] = {priority = "high", delay = 0.250}, 	
 	["dazzle"] = {priority = "high", delay = 0.8}, 	
-	["blindingdart"] = {priority = "low", delay = 0.1}, 	
-	["threshq"] = {priority = "high", delay = 0.1}, 	
-	["threshe"] = {priority = "high", delay = 0.1}, 	
-	["tristanar"] = {priority = "high", delay = 0.1}, 	
-	["tristanar"] = {priority = "high", delay = 0.1}, 	
-	["trundleq"] = {priority = "low", delay = 0.1}, 	
-	["tristanar"] = {priority = "high", delay = 0.1}, 	
-	["goldcardpreattack"] = {priority = "high", delay = 0.1}, 	
-	["udyrbearstance"] = {priority = "high", delay = 0.1}, 	
-	["urgote"] = {priority = "high", delay = 0.1}, 	
-	["varusr"] = {priority = "high", delay = 0.1}, 
-	["vaynecondemn"] = {priority = "high", delay = 0.1}, 		
+	["blindingdart"] = {priority = "low", delay = 0}, 	
+	["threshq"] = {priority = "high", delay = 0}, 	
+	["threshe"] = {priority = "high", delay = 0}, 	
+	["tristanar"] = {priority = "high", delay = 0}, 	
+	["tristanar"] = {priority = "high", delay = 0}, 	
+	["trundleq"] = {priority = "low", delay = 0}, 	
+	["tristanar"] = {priority = "high", delay = 0}, 	
+	["goldcardpreattack"] = {priority = "high", delay = 0}, 	
+	["udyrbearstance"] = {priority = "high", delay = 0}, 	
+	["urgote"] = {priority = "high", delay = 0}, 	
+	["varusr"] = {priority = "high", delay = 0}, 
+	["vaynecondemn"] = {priority = "high", delay = 0}, 		
 	["veigardarkmatter"] = {priority = "low", delay = 1.0}, 	
-	["veigareventhorizon"] = {priority = "high", delay = 0.1}, 	
-	["veigarr"] = {priority = "high", delay = 0.1}, 	
-	["velkoze"] = {priority = "high", delay = 0.1}, 	
-	["viqmissile"] = {priority = "high", delay = 0.1}, 	
-	["vir"] = {priority = "high", delay = 0.1}, 	
+	["veigareventhorizon"] = {priority = "high", delay = 0}, 	
+	["veigarr"] = {priority = "high", delay = 0}, 	
+	["velkoze"] = {priority = "high", delay = 0}, 	
+	["viqmissile"] = {priority = "high", delay = 0}, 	
+	["vir"] = {priority = "high", delay = 0}, 	
 	["viktorgravitonfield"] = {priority = "high", delay = 1.3}, 	
 	["viktordeathray3"] = {priority = "high", delay = 0.3}, 	
 	--vlad q special
-	["volibearqattack"] = {priority = "high", delay = 0.1}, 	
+	["volibearqattack"] = {priority = "high", delay = 0}, 	
 	["infiniteduress"] = {priority = "low", delay = 0}, 	
-	["monkeykingqattack"] = {priority = "low", delay = 0.1}, 	
-	["monkeykingspintowin"] = {priority = "high", delay = 0.1}, 	
+	["monkeykingqattack"] = {priority = "low", delay = 0}, 	
+	["monkeykingspintowin"] = {priority = "high", delay = 0}, 	
 	["xayahe"] = {priority = "low", delay = 0}, 	
-	["xerathmagespear"] = {priority = "high", delay = 0.1}, 	
-	--xin zhao 3rd q
-	["xinzhaow"] = {priority = "low", delay = 0.1}, 	
-	["xinzhaor"] = {priority = "high", delay = 0.1}, 	
-	["yasuoq3w"] = {priority = "high", delay = 0.1}, --check name	
-	["yorickq"] = {priority = "low", delay = 0.1}, 	
+	["xerathmagespear"] = {priority = "high", delay = 0}, 	
+	["xinzhaoqthrust3"] = {priority = "high", delay = 0}, 	
+	["xinzhaow"] = {priority = "low", delay = 0}, 	
+	["xinzhaor"] = {priority = "high", delay = 0}, 	
+	["yasuoq3w"] = {priority = "high", delay = 0}, --check name	
+	["yorickq"] = {priority = "low", delay = 0}, 	
 	--zac q 2nd
-	["zace"] = {priority = "high", delay = 0.1}, 	
-	["zacr"] = {priority = "high", delay = 0.1}, 	--check
-	["ziggsr"] = {priority = "high", delay = 0.1}, 	
-	["zacr"] = {priority = "high", delay = 0.1}, 
-	["zedq"] = {priority = "low", delay = 0.1}, 		
+	["zace"] = {priority = "high", delay = 0}, 	
+	["zacr"] = {priority = "high", delay = 0}, 	--check
+	["ziggsr"] = {priority = "high", delay = 0}, 	
+	["zacr"] = {priority = "high", delay = 0}, 
+	["zedq"] = {priority = "low", delay = 0}, 		
 	["zedr"] = {priority = "high", delay = 0.74}, 	
-	["zoeq"] = {priority = "low", delay = 0.1}, 	
-	["zyrae"] = {priority = "low", delay = 0.1}, 	
+	["zoeq"] = {priority = "low", delay = 0}, 	
+	["zyrae"] = {priority = "low", delay = 0}, 	
 }
 
 --[[
@@ -630,7 +628,7 @@ end
 function WBlock()
 	if evade then 	
 		for _, spell in pairs(evade.core.active_spells) do
-			if type(spell) == "table" and blockSpells[spell.name:lower()] then
+			if type(spell) == "table" and blockSpells[spell.name:lower()] and ((blockSpells[spell.name:lower()].missile and spell.missile.name == blockSpells[spell.name:lower()].missile) or not blockSpells[spell.name:lower()].missile) then
 				if spell.polygon then--print(spell.name)
 					if spell.missile and spell.missile.speed then 
 						if spell.polygon:Contains(player.path.serverPos) then
@@ -666,7 +664,7 @@ function CastW1() --spellblock
 end
 
 function CastW2(target)
-	if player.buff[ireliawdefense] then
+	if player.buff["ireliawdefense"] then
 		local seg = gpred.linear.get_prediction(w, target)
 		if seg and TraceFilter(seg, target, w, false) then
 			player:castSpell("release", 1, vec3(seg.endPos.x, target.pos.y, seg.endPos.y))
@@ -969,9 +967,9 @@ local function OnTick()
 						player:castSpell("release", 1, game.mousePos)
 					end
 				end
+			else 
+				w_parameters.releaseTime = math.min(os.clock() + 0.2, w_parameters.last + w_parameters.fullDur - 0.05) 
 			end
-		else 
-			w_parameters.releaseTime = os.clock() + 0.2
 		end
 	end
 	
