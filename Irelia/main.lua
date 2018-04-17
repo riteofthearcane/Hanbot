@@ -39,12 +39,12 @@ w = {
 } 
 
 w_parameters = {
-	castTime = nil,
 	damageDur = 0.75,
 	fullDur = 1.5,
 	releaseTime = os.clock(),
 	last = os.clock(),
-	nonMissileCheck = {}
+	nonMissileCheck = {},
+	castTime = {}
 }
 
 e_parameters = {
@@ -54,7 +54,7 @@ e_parameters = {
 	missileSpeed = 2000,
 	delayFloor = 0.625
 }
-	
+
 e = {
 	delay = e_parameters.delayFloor, 
 	width =70, --originally 70 
@@ -63,9 +63,9 @@ e = {
 	range = 900
 }
 
+
 	
 e_obj = nil
-
 
 r = {
 	delay = 0.4,
@@ -85,7 +85,7 @@ debugPos = {
 	targetPathEnd = vec3(0,0,0),
 }
 	
-interruptSpells = { --add jhin ult
+interruptSpells = { 
 	"caitlynaceinthehole", 
 	"drain", 
 	"crowstorm", 
@@ -99,14 +99,15 @@ interruptSpells = { --add jhin ult
 	"gate", 
 	"warwickr",
 	"sionq",
-	"jhinr"
+	"jhinr",
+	"pantheonrjump",
+	"reapthewhirlwind",
+	"xerathlocusofpower2",
 }
 
 blockSpells = { --add passives like braum and talon
 	["aatroxq"] = {priority = "high", delay = 0.55},
 	["aatroxe"] = {priority = "low", delay = 0},
-	["ahriorbofdeception"] = {priority = "low", delay = 0},
-	["akalimota"] = {priority = "low", delay = 0},
 	["ahriseduce"] = {priority = "high", delay = 0},
 	["pulverize"] = {priority = "high", delay = 0},
 	["headbutt"] = {priority = "high", delay = 0},
@@ -122,7 +123,7 @@ blockSpells = { --add passives like braum and talon
 	["azirr"] = {priority = "high", delay = 0},
 	["bardq"] = {priority = "high", delay = 0},
 	["rocketgrab"] = {priority = "high", delay = 0},
-	["powerfist"] = {priority = "high", delay = 0},
+	["powerfistattack"] = {priority = "medium", delay = 0},
 	["staticfield"] = {priority = "low", delay = 0},
 	["brandq"] = {priority = "high", delay = 0}, --check for buff
 	["braumbasicattackpassiveoverride"] = {priority = "high", delay = 0},
@@ -132,7 +133,7 @@ blockSpells = { --add passives like braum and talon
 	["caitlynaceinthehole"] = {priority = "high", delay = 1},
 	["camilleq"] = {priority = "high", delay = 0}, --check back
 	["camillew"] = {priority = "low", delay = 0}, --check
-	["camillee"] = {priority = "high", delay = 0}, --check
+	["camillee"] = {priority = "medium", delay = 0}, --check
 	["cassiopeiar"] = {priority = "high", delay = 0.4}, 
 	["rupture"] = {priority = "high", delay = 1.0}, 
 	["phosphorusbomb"] = {priority = "low", delay = 0.4}, 
@@ -144,12 +145,12 @@ blockSpells = { --add passives like braum and talon
 	["dianavortex"] = {priority = "high", delay = 0}, 
 	["dravendoubleshot"] = {priority = "high", delay = 0}, 
 	["dravenrcast"] = {priority = "low", delay = 0}, 
-	["masochismattack"] = {priority = "low", delay = 0}, 
-	["ekkobasicattackp3"] = {priority = "low", delay = 0}, 
+	["masochismattack"] = {priority = "medium", delay = 0}, 
+	["ekkobasicattackp3"] = {priority = "medium", delay = 0}, 
 	["ekkor"] = {priority = "high", delay = 0}, 
 	["elisehumanq"] = {priority = "low", delay = 0}, 
 	["elisehumane"] = {priority = "high", delay = 0}, 
-	["elisehumane"] = {priority = "high", delay = 0}, 
+	["evelynnq"] = {priority = "high", delay = 0}, --check for buff
 	["evelynnr"] = {priority = "high", delay = 0}, 
 	["ezrealtrueshotbarrage"] = {priority = "low", delay = 0}, 
 	["terrify"] = {priority = "high", delay = 0}, 
@@ -158,7 +159,7 @@ blockSpells = { --add passives like braum and talon
 	["galioe"] = {priority = "high", delay = 0},
 	["galior"] = {priority = "high", delay = 1.35},
 	["fizzw"] = {priority = "low", delay = 0}, --check
-	["fizzjumptwo"] = {priority = "low", delay = 0}, 
+	["fizzjumptwo"] = {priority = "medium", delay = 0}, 
 	["parley"] = {priority = "low", delay = 0}, 
 	--barrel q
 	["garenqattack"] = {priority = "low", delay = 0}, 
@@ -171,7 +172,7 @@ blockSpells = { --add passives like braum and talon
 	["graveschargeshot"] = {priority = "high", delay = 0}, 
 	["hecarimrampattack"] = {priority = "high", delay = 0},
 	["hecarimultmissile"] = {priority = "high", delay = 0}, 	
-	["heimerdingere"] = {priority = "high", delay = 0}, 
+	["heimerdingere"] = {priority = "low", delay = 0}, 
 	["illaoiq"] = {priority = "high", delay = 0.55}, 
 	["illaoiwattack"] = {priority = "high", delay = 0}, 
 	--irelia e detonate
@@ -187,16 +188,16 @@ blockSpells = { --add passives like braum and talon
 	["jinxr"] = {priority = "high", delay = 0},
 	--jhin 4th shot
 	["jhinw"] = {priority = "high", delay = 0.4}, --check buff
-	["jhinr"] = {priority = "high", delay = 0.4}, --4th shot missile = "jhinrshotmis4"
+	["jhinr"] = {priority = "high", delay = 0}, --4th shot missile = "jhinrshotmis4"
 	["karthusfallenone"] = {priority = "high", delay = 2},
 	["nulllance"] = {priority = "low", delay = 0},
-	["katarinar"] = {priority = "low", delay = 0},
+	["katarinar"] = {priority = "high", delay = 0},
 	["kennenshurikenhurlmissile1"] = {priority = "low", delay = 0},
 	["khazixq"] = {priority = "high", delay = 0},
 	["khazixqlong"] = {priority = "high", delay = 0},
 	--kled q yank
 	--kled r damage portion
-	["blindmonkqtwo"] = {priority = "low", delay = 0},
+	["blindmonkqtwo"] = {priority = "medium", delay = 0},
 	["blindmonkrkick"] = {priority = "high", delay = 0},
 	["leonashieldofdaybreak"] = {priority = "high", delay = 0},
 	["leonazenithblade"] = {priority = "high", delay = 0},
@@ -211,28 +212,27 @@ blockSpells = { --add passives like braum and talon
 	["seismicshard"] = {priority = "low", delay = 0},
 	["ufslash"] = {priority = "high", delay = 0},
 	["malzaharr"] = {priority = "high", delay = 0},
-	["maokaiq"] = {priority = "high", delay = 0},
+	["maokaiq"] = {priority = "medium", delay = 0},
 	["maokaiw"] = {priority = "count", delay = 0},
 	["maokair"] = {priority = "count", delay = 0},
-	["masteryidoublestrike"] = {priority = "low", delay = 0},
-	--mf 2nd q
-	["mordekaiserqattack2"] = {priority = "low", delay = 0},
+	["missfortunershotextra"] = {priority = "low", delay = 0},
+	["mordekaiserqattack2"] = {priority = "high", delay = 0},
 	["mordekaiserchildrenofthegrave"] = {priority = "high", delay = 0}, --need to test
 	["darkbindingmissile"] = {priority = "high", delay = 0}, 
 	["namiqmissile"] = {priority = "high", delay = 0},
 	["namirmissile"] = {priority = "count", delay = 0},
-	["nasusqattack"] = {priority = "low", delay = 0}, 
+	["nasusqattack"] = {priority = "medium", delay = 0}, 
 	["nautilusravagestrikeattack"] = {priority = "high", delay = 0}, 
 	["nautilusanchordrag"] = {priority = "low", delay = 0}, 
 	--naut r
 	["javelintoss"] = {priority = "low", delay = 0},
 	["nidaleetakedownattack"] = {priority = "high", delay = 0},
-	["olafrecklessstrike"] = {priority = "low", delay = 0},
+	["olafrecklessstrike"] = {priority = "medium", delay = 0},
 	["orianadissonancecommand"] = {priority = "high", delay = 0.4}, 
 	["orianadetonatecommand"] = {priority = "high", delay = 0.4}, 
-	["ornnw"] = {priority = "low", delay = 0}, --check 
-	["ornne"] = {priority = "high", delay = 0}, --check
-	["ornnr"] = {priority = "high", delay = 0}, 
+	["ornnw"] = {priority = "medium", delay = 0}, --check 
+	["ornne"] = {priority = "high", delay = 0},
+	["ornnr"] = {priority = "high", delay = 0}, --check 
 	["pantheonq"] = {priority = "low", delay = 0}, 
 	["pantheonw"] = {priority = "high", delay = 0}, 
 	["poppypassiveattack"] = {priority = "low", delay = 0}, 
@@ -243,21 +243,22 @@ blockSpells = { --add passives like braum and talon
 	--rammus q
 	["puncturingtaunt"] = {priority = "high", delay = 0}, 
 	["reksaiwburrowed"] = {priority = "high", delay = 0}, 
-	["reksaie"] = {priority = "low", delay = 0}, 
+	["reksaie"] = {priority = "medium", delay = 0}, 
 	["reksairwrapper"] = {priority = "high", delay = 0},  --work
 	["renektonexecute"] = {priority = "high", delay = 0}, --work
 	["renektonsuperexecute"] = {priority = "high", delay = 0}, 
-	["rengarq"] = {priority = "low", delay = 0}, 
+	["rengarq"] = {priority = "medium", delay = 0}, 
 	--riven third q
 	["rivenizunablade"] = {priority = "high", delay = 0}, 
 	["ryzeqwrapper"] = {priority = "low", delay = 0}, --check for e
 	["ryzew"] = {priority = "high", delay = 0}, 
 	["sejuanie"] = {priority = "high", delay = 0}, 
-	["sejuanir"] = {priority = "high", delay = 0}, 
+	["sejuanir"] = {priority = "high", delay = 0},
+	["twoshivpoison"] = {priority = "low", delay = 0}, 
 	--shen q autos
 	["shene"] = {priority = "high", delay = 0}, 
-	["shyvanadoubleattack"] = {priority = "low", delay = 0}, 
-	["shyvanadoubleattackdragon"] = {priority = "low", delay = 0}, 
+	["shyvanadoubleattack"] = {priority = "medium", delay = 0}, 
+	["shyvanadoubleattackdragon"] = {priority = "medium", delay = 0}, 
 	["shyvanafireball"] = {priority = "low", delay = 0}, 
 	["shyvanafireballdragon2"] = {priority = "low", delay = 0}, 
 	["shyvanatransformcast"] = {priority = "high", delay = 0}, 
@@ -273,19 +274,19 @@ blockSpells = { --add passives like braum and talon
 	["syndrae"] = {priority = "high", delay = 0}, 	
 	["syndrar"] = {priority = "high", delay = 0}, 	
 	["taliyahwvc"] = {priority = "high", delay = 0.250}, 	
-	["dazzle"] = {priority = "high", delay = 0.8}, 	
+	["tarice"] = {priority = "high", delay = 0.9}, 	
 	["blindingdart"] = {priority = "low", delay = 0}, 	
 	["threshq"] = {priority = "high", delay = 0}, 	
 	["threshe"] = {priority = "high", delay = 0}, 	
 	["tristanar"] = {priority = "high", delay = 0}, 	
 	["tristanar"] = {priority = "high", delay = 0}, 	
-	["trundleq"] = {priority = "low", delay = 0}, 	
+	["trundleq"] = {priority = "medium", delay = 0}, 	
 	["tristanar"] = {priority = "high", delay = 0}, 	
 	["goldcardpreattack"] = {priority = "high", delay = 0}, 	
 	["udyrbearstance"] = {priority = "high", delay = 0}, 	
 	["urgote"] = {priority = "high", delay = 0}, 	
 	["varusr"] = {priority = "high", delay = 0}, 
-	["vaynecondemn"] = {priority = "high", delay = 0}, 		
+	["vaynecondemnmissile"] = {priority = "high", delay = 0}, 		
 	["veigardarkmatter"] = {priority = "low", delay = 1.0}, 	
 	["veigareventhorizon"] = {priority = "high", delay = 0}, 	
 	["veigarr"] = {priority = "high", delay = 0}, 	
@@ -293,28 +294,28 @@ blockSpells = { --add passives like braum and talon
 	["viqmissile"] = {priority = "high", delay = 0}, 	
 	["vir"] = {priority = "high", delay = 0}, 	
 	["viktorgravitonfield"] = {priority = "high", delay = 1.3}, 	
-	["viktordeathray3"] = {priority = "high", delay = 0.3}, 	
+	["viktordeathray3"] = {priority = "low", delay = 0.3}, 	
 	--vlad q special
 	["volibearqattack"] = {priority = "high", delay = 0}, 	
 	["infiniteduress"] = {priority = "low", delay = 0}, 	
-	["monkeykingqattack"] = {priority = "low", delay = 0}, 	
+	["monkeykingqattack"] = {priority = "medium", delay = 0}, 	
 	["monkeykingspintowin"] = {priority = "high", delay = 0}, 	
 	["xayahe"] = {priority = "low", delay = 0}, 	
 	["xerathmagespear"] = {priority = "high", delay = 0}, 	
 	["xinzhaoqthrust3"] = {priority = "high", delay = 0}, 	
-	["xinzhaow"] = {priority = "low", delay = 0}, 	
+	["xinzhaow"] = {priority = "medium", delay = 0}, 	
 	["xinzhaor"] = {priority = "high", delay = 0}, 	
-	["yasuoq3w"] = {priority = "high", delay = 0}, --check name	
-	["yorickq"] = {priority = "low", delay = 0}, 	
+	["yasuoq3w"] = {priority = "high", delay = 0}, 
+	["yorickq"] = {priority = "medium", delay = 0}, 	
 	--zac q 2nd
 	["zace"] = {priority = "high", delay = 0}, 	
 	["zacr"] = {priority = "high", delay = 0}, 	--check
 	["ziggsr"] = {priority = "high", delay = 0}, 	
-	["zacr"] = {priority = "high", delay = 0}, 
+	--["zacr"] = {priority = "high", delay = 0}, 
 	["zedq"] = {priority = "low", delay = 0}, 		
 	["zedr"] = {priority = "high", delay = 0.74}, 	
-	["zoeq"] = {priority = "low", delay = 0}, 	
-	["zyrae"] = {priority = "low", delay = 0}, 	
+	["zoeq"] = {priority = "medium", delay = 0}, 	
+	["zyrae"] = {priority = "high", delay = 0}, 	
 }
 
 --[[
@@ -558,8 +559,6 @@ local function TraceFilter(seg, obj, spell, slow)
 	end
 end	
 
-
-	
 function CastQ(target)
 	if player:spellSlot(0).state == 0 and player.pos:dist(target.pos) <= q.range then
 		player:castSpell("obj", 0, target)	 
@@ -569,6 +568,7 @@ end
 function CanKS(obj)
 	return GetQDamage(obj) > common.GetShieldedHealth("ALL", obj)
 end
+
 
 function GetBestQ(pos)
 	local minDistance = player.pos:dist(pos)
@@ -604,12 +604,41 @@ function GetBestQ(pos)
 	end
 end
 
+function LastHitQ()
+	local minionsInRange = common.GetMinionsInRange(q.range, TEAM_ENEMY)
+	for i, minion in pairs(minionsInRange) do 
+		if minion and minion.pos:dist(game.mousePos) <= script.menu.searchrange:get() and CanKS(minion) then
+			CastQ(minion)
+		end
+	end
+end
+
 function EvalPriority(spell)
-	if blockSpells[spell.name:lower()].priority == "high" then 
+	if player.buff["ireliawdefense"] then
 		return true
-	else
-		local target = ts.get_result(TargetSelectionNearMouse).obj
-		if target then
+	end
+	local priority = blockSpells[spell.name:lower()].priority 
+	local target = ts.get_result(TargetSelectionNearMouse).obj
+	if priority == "high" then 
+		return true
+	end
+	if priority == "count" then
+		local enemies = common.GetEnemyHeroesInRange(1200, player.pos)
+		local count = 0
+		for i, enemy in pairs(enemies) do
+			count = count + 1
+		end
+		if count >= 2 then
+			return true
+		end
+	end
+	if priority == "medium" then
+		if target and (player.pos:dist(target) < player.attackRange + 150 or target.buff["ireliamark"] or CanKS(target)) and spell.owner.ptr == target.ptr then
+			return true
+		end
+	end
+	if priority == "low" then
+		if orb.menu.last_hit:get() or orb.menu.lane_clear:get() or orb.menu.hybrid:get() and not (target and player.pos:dist(target) < player.attackRange + 150) then
 			return true
 		end
 	end
@@ -617,10 +646,9 @@ end
 
 function ReceiveSpell(spell) --want to have a list of castTime
 	if blockSpells[spell.name:lower()] and w_parameters.castTime == nil then 
-		print(spell.name)
 		local dist = spell.endPos and player.path.serverPos:dist(spell.endPos) or nil
 		if (spell.target and spell.target.ptr == player.ptr) or dist < player.boundingRadius then
-			w_parameters.castTime = os.clock() + blockSpells[spell.name:lower()].delay
+			w_parameters.castTime[spell.name:lower()] = os.clock() + blockSpells[spell.name:lower()].delay
 		end
 	end
 end
@@ -628,18 +656,18 @@ end
 function WBlock()
 	if evade then 	
 		for _, spell in pairs(evade.core.active_spells) do
-			if type(spell) == "table" and blockSpells[spell.name:lower()] and ((blockSpells[spell.name:lower()].missile and spell.missile.name == blockSpells[spell.name:lower()].missile) or not blockSpells[spell.name:lower()].missile) then
-				if spell.polygon then--print(spell.name)
+			if type(spell) == "table" and blockSpells[spell.name:lower()] then
+				if spell.polygon then
 					if spell.missile and spell.missile.speed then 
-						if spell.polygon:Contains(player.path.serverPos) then
-							local hitTime = (player.path.serverPos:dist(spell.missile.pos)-player.boundingRadius)/spell.missile.speed
+						if spell.polygon:Contains(player.pos) == 1 then
+							local hitTime = (player.pos:dist(spell.missile.pos)-player.boundingRadius)/spell.missile.speed
 							if hitTime > 0 and hitTime < 0.10 and EvalPriority(spell) then
 								return true
 							end
 						end
 					else
 						if w_parameters.nonMissileCheck[spell.name:lower()] then
-							if w_parameters.nonMissileCheck[spell.name:lower()] <= os.clock() and EvalPriority(spell) and spell.polygon:Contains(player.path.serverPos) then
+							if (not player.buff["ireliawdefense"] and os.clock() >= w_parameters.nonMissileCheck[spell.name:lower()]) or (player.buff["ireliawdefense"] and os.clock() >= w_parameters.nonMissileCheck[spell.name:lower()] - 0.2) and EvalPriority(spell) and spell.polygon:Contains(player.pos) ==1 then
 								return true
 							end
 						else
@@ -650,8 +678,17 @@ function WBlock()
 			end
 		end
 	end
-	if w_parameters.castTime and os.clock() >= w_parameters.castTime then
-		w_parameters.castTime = nil
+	local lowest = 10000000
+	for i, spell in pairs(w_parameters.castTime) do 
+		if w_parameters.castTime[spell] and w_parameters.castTime[spell] <= os.clock() then
+			w_parameters.castTime[spell] = nil
+			passed = true
+		end
+		if w_parameters.castTime[spell] < lowest then
+			lowest = w_parameters.castTime[spell]
+		end
+	end
+	if (not player.buff["ireliawdefense"] and os.clock() >= lowest) or (player.buff["ireliawdefense"] and os.clock() >= lowest - 0.2) then
 		return true
 	end
 end
@@ -912,6 +949,10 @@ local function OnTick()
 		end
 	end
 	
+	if orb.menu.hybrid:get() then
+		LastHitQ()
+	end
+	
 	if os.clock() >= e_parameters.nextCast then 
 		if e_parameters.e1Pos == vec3(0,0,0) and player:spellSlot(2).name == "IreliaE" then 
 			if target and (not target.buff["ireliamark"] or CanKS(target)) then
@@ -956,7 +997,7 @@ local function OnTick()
 		CastW1()
 	end
 	if player.buff["ireliawdefense"] then
-		if not (player.buff[5] or player.buff[8] or player.buff[24] or player.buff[11] or player.buff[22] or player.buff[8] or player.buff[21]) or os.clock() >= w_parameters.last + w_parameters.fullDur - 0.05 then
+		if not (player.buff[5] or player.buff[8] or player.buff[24] or player.buff[11] or player.buff[22] or player.buff[8] or player.buff[21] or WBlock()) or os.clock() >= w_parameters.last + w_parameters.fullDur - 0.05 then
 			if w_parameters.releaseTime and w_parameters.releaseTime <= os.clock() then
 				if target then
 					CastW2(target)
