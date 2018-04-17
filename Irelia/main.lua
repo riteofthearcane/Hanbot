@@ -131,9 +131,9 @@ blockSpells = { --add passives like braum and talon
 	["caitlynheadshotmissile"] = {priority = "low", delay = 0},
 	["caitlynpiltoverpeacemaker"] = {priority = "low", delay = 0},
 	["caitlynaceinthehole"] = {priority = "high", delay = 1},
-	["camilleq"] = {priority = "high", delay = 0}, --check back
+	["camilleqattackempowered"] = {priority = "high", delay = 0}, --check back
 	["camillew"] = {priority = "low", delay = 0}, --check
-	["camillee"] = {priority = "medium", delay = 0}, --check
+	["camilleedash2"] = {priority = "medium", delay = 0}, --check
 	["cassiopeiar"] = {priority = "high", delay = 0.4}, 
 	["rupture"] = {priority = "high", delay = 1.0}, 
 	["phosphorusbomb"] = {priority = "low", delay = 0.4}, 
@@ -177,7 +177,7 @@ blockSpells = { --add passives like braum and talon
 	["illaoiwattack"] = {priority = "high", delay = 0}, 
 	--irelia e detonate
 	["ireliar"] = {priority = "high", delay = 0}, 
-	["howlinggale"] = {priority = "count", delay = 0}, 
+	--["howlinggale"] = {priority = "count", delay = 0}, 
 	["reapthewhirlwind"] = {priority = "count", delay = 0}, 
 	["jarvanivdragonstrike2"] = {priority = "high", delay = 0}, --check for knockup
 	["jarvanivcataclysm"] = {priority = "high", delay = 0},
@@ -186,11 +186,13 @@ blockSpells = { --add passives like braum and talon
 	["jayceshockblast"] = {priority = "low", delay = 0},
 	["jayceshockblastwallmis"] = {priority = "high", delay = 0},
 	["jinxr"] = {priority = "high", delay = 0},
-	--jhin 4th shot
+	["jhinpassiveattack"] = {priority = "high", delay = 0}, --check buff
 	["jhinw"] = {priority = "high", delay = 0.4}, --check buff
-	["jhinr"] = {priority = "high", delay = 0}, --4th shot missile = "jhinrshotmis4"
+	["jhinrshot"] = {priority = "high", delay = 0}, --4th shot missile = "jhinrshotmis4"
 	["karthusfallenone"] = {priority = "high", delay = 2},
 	["nulllance"] = {priority = "low", delay = 0},
+	["kaynr"] = {priority = "high", delay = 0},
+
 	["katarinar"] = {priority = "high", delay = 0},
 	["kennenshurikenhurlmissile1"] = {priority = "low", delay = 0},
 	["khazixq"] = {priority = "high", delay = 0},
@@ -267,8 +269,9 @@ blockSpells = { --add passives like braum and talon
 	["sionr"] = {priority = "high", delay = 0}, 
 	["skarnerimpale"] = {priority = "high", delay = 0}, 
 	["sonar"] = {priority = "high", delay = 0}, 
-	--need new swain
-	--syndra stun
+	--["swaine"] = {priority = "high", delay = 0}, 
+	["swainpdummycast"] = {priority = "high", delay = 0}, 
+	["swainrsoulflare"] = {priority = "high", delay = 0}, 
 	["syndraq"] = {priority = "low", delay = 0.4}, 	
 	["syndrawcast"] = {priority = "low", delay = 0}, 	
 	["syndrae"] = {priority = "high", delay = 0}, 	
@@ -278,7 +281,6 @@ blockSpells = { --add passives like braum and talon
 	["blindingdart"] = {priority = "low", delay = 0}, 	
 	["threshq"] = {priority = "high", delay = 0}, 	
 	["threshe"] = {priority = "high", delay = 0}, 	
-	["tristanar"] = {priority = "high", delay = 0}, 	
 	["tristanar"] = {priority = "high", delay = 0}, 	
 	["trundleq"] = {priority = "medium", delay = 0}, 	
 	["tristanar"] = {priority = "high", delay = 0}, 	
@@ -311,7 +313,7 @@ blockSpells = { --add passives like braum and talon
 	["zace"] = {priority = "high", delay = 0}, 	
 	["zacr"] = {priority = "high", delay = 0}, 	--check
 	["ziggsr"] = {priority = "high", delay = 0}, 	
-	--["zacr"] = {priority = "high", delay = 0}, 
+	["zacr"] = {priority = "high", delay = 0.9}, 
 	["zedq"] = {priority = "low", delay = 0}, 		
 	["zedr"] = {priority = "high", delay = 0.74}, 	
 	["zoeq"] = {priority = "medium", delay = 0}, 	
@@ -643,54 +645,56 @@ function EvalPriority(spell)
 		end
 	end
 end
-
+--[[
 function ReceiveSpell(spell) --want to have a list of castTime
-	if blockSpells[spell.name:lower()] and w_parameters.castTime == nil then 
+	if blockSpells[spell.name:lower()] and not w_parameters.castTime[spell.name:lower()] then 
 		local dist = spell.endPos and player.path.serverPos:dist(spell.endPos) or nil
 		if (spell.target and spell.target.ptr == player.ptr) or dist < player.boundingRadius then
 			w_parameters.castTime[spell.name:lower()] = os.clock() + blockSpells[spell.name:lower()].delay
+			print("3")
+			print(spell.name)
 		end
 	end
 end
-
+]]
 function WBlock()
 	if evade then 	
 		for _, spell in pairs(evade.core.active_spells) do
 			if type(spell) == "table" and blockSpells[spell.name:lower()] then
-				if spell.polygon then
-					if spell.missile and spell.missile.speed then 
-						if spell.polygon:Contains(player.pos) == 1 then
-							local hitTime = (player.pos:dist(spell.missile.pos)-player.boundingRadius)/spell.missile.speed
-							if hitTime > 0 and hitTime < 0.10 and EvalPriority(spell) then
-								return true
-							end
+				if spell.missile and spell.missile.speed then 
+					if (spell.polygon and spell.polygon:Contains(player.pos)==1) or (spell.target and spell.target.ptr) then
+						local hitTime = (player.pos:dist(spell.missile.pos)-player.boundingRadius)/spell.missile.speed
+						if hitTime > 0 and hitTime < 0.10 and EvalPriority(spell) then
+							return true
+						end
+					end
+				else
+					if w_parameters.nonMissileCheck[spell.name:lower()] then
+						if ((not player.buff["ireliawdefense"] and os.clock() >= w_parameters.nonMissileCheck[spell.name:lower()]) or 
+						(player.buff["ireliawdefense"] and os.clock() >= w_parameters.nonMissileCheck[spell.name:lower()] - 0.2)) and EvalPriority(spell) and 
+						((spell.polygon and spell.polygon:Contains(player.pos)==1) or (spell.target and spell.target.ptr == player.ptr)) then
+							return true
 						end
 					else
-						if w_parameters.nonMissileCheck[spell.name:lower()] then
-							if (not player.buff["ireliawdefense"] and os.clock() >= w_parameters.nonMissileCheck[spell.name:lower()]) or (player.buff["ireliawdefense"] and os.clock() >= w_parameters.nonMissileCheck[spell.name:lower()] - 0.2) and EvalPriority(spell) and spell.polygon:Contains(player.pos) ==1 then
-								return true
-							end
-						else
-							w_parameters.nonMissileCheck[spell.name:lower()] = os.clock() + blockSpells[spell.name:lower()].delay
-						end
+						w_parameters.nonMissileCheck[spell.name:lower()] = os.clock() + blockSpells[spell.name:lower()].delay
 					end
 				end
 			end
 		end
 	end
-	local lowest = 10000000
+	--[[local lowest = 10000000
 	for i, spell in pairs(w_parameters.castTime) do 
-		if w_parameters.castTime[spell] and w_parameters.castTime[spell] <= os.clock() then
-			w_parameters.castTime[spell] = nil
-			passed = true
+		if spell and spell+1 <= os.clock() then
+			spell = nil
 		end
-		if w_parameters.castTime[spell] < lowest then
-			lowest = w_parameters.castTime[spell]
+		if  spell and spell < lowest then
+			lowest = spell
 		end
 	end
+
 	if (not player.buff["ireliawdefense"] and os.clock() >= lowest) or (player.buff["ireliawdefense"] and os.clock() >= lowest - 0.2) then
 		return true
-	end
+	end]]
 end
 
 function CastW1() --spellblock
@@ -844,7 +848,8 @@ function CastE2(target)
 					local e1Pos2D = vec2(e_parameters.e1Pos.x, e_parameters.e1Pos.z)
 					local tempCastPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos1)
 					local tempCastPos3D = vec3(tempCastPos.x, target.pos.y, tempCastPos.y)
-					if tempCastPos3D:dist(player.pos)>e.range or predPos3D1:dist(e_parameters.e1Pos) > tempCastPos3D:dist(e_parameters.e1Pos) or tempCastPos3D:dist(e_parameters.e1Pos) < target.moveSpeed*e_parameters.delayFloor*1.5 then 
+					if tempCastPos3D:dist(player.pos)>e.range or predPos3D1:dist(e_parameters.e1Pos) > tempCastPos3D:dist(e_parameters.e1Pos) or 
+					tempCastPos3D:dist(e_parameters.e1Pos) < target.moveSpeed*e_parameters.delayFloor*1.5 then 
 						--tempCastPos3D = vec3(predPos1.x, target.pos.y, predPos1.y)
 						short1 = true
 						local pathNorm = (predPos3D1-e_parameters.e1Pos):norm()
@@ -868,7 +873,8 @@ function CastE2(target)
 							local castPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos2)
 							local castPos3D = vec3(castPos.x, target.pos.y, castPos.y)
 							
-							if castPos3D:dist(player.pos)>e.range or predPos3D2:dist(e_parameters.e1Pos) > castPos3D:dist(e_parameters.e1Pos) or castPos3D:dist(e_parameters.e1Pos) <target.moveSpeed*e_parameters.delayFloor*1.5 then 
+							if castPos3D:dist(player.pos)>e.range or predPos3D2:dist(e_parameters.e1Pos) > castPos3D:dist(e_parameters.e1Pos) or 
+							castPos3D:dist(e_parameters.e1Pos) <target.moveSpeed*e_parameters.delayFloor*1.5 then 
 								--castPos3D = predPos3D2
 								short2 = true
 								--temp code
@@ -961,7 +967,8 @@ local function OnTick()
 						MultiE1(target2,target)
 					end
 				else
-					if (orb.menu.combat:get() and ((bestQ ~= nil and bestQ.pos:dist(target.pos) < script.menu.erange:get()) or (bestQ == nil and player.pos:dist(target.pos) < script.menu.erange:get()))) or script.menu.e:get() then
+					if (orb.menu.combat:get() and ((bestQ ~= nil and bestQ.pos:dist(target.pos) < script.menu.erange:get()) or 
+					(bestQ == nil and player.pos:dist(target.pos) < script.menu.erange:get()))) or script.menu.e:get() then
 						CastE1(target)
 					end
 				end
@@ -993,11 +1000,12 @@ local function OnTick()
 		end
 	end
 	
-	if WBlock() then	
+	if WBlock() and not player.buff["ireliawdefense"] then	
 		CastW1()
 	end
 	if player.buff["ireliawdefense"] then
-		if not (player.buff[5] or player.buff[8] or player.buff[24] or player.buff[11] or player.buff[22] or player.buff[8] or player.buff[21] or WBlock()) or os.clock() >= w_parameters.last + w_parameters.fullDur - 0.05 then
+		if not (player.buff[5] or player.buff[8] or player.buff[24] or player.buff[11] or player.buff[22] or player.buff[8] or player.buff[21] or 
+		WBlock()) or os.clock() >= w_parameters.last + w_parameters.fullDur - 0.05 then
 			if w_parameters.releaseTime and w_parameters.releaseTime <= os.clock() then
 				if target then
 					CastW2(target)
@@ -1022,8 +1030,11 @@ end
 
 local function OnSpell(spell)
 	AutoInterrupt(spell)
-	ReceiveSpell(spell)
+	--ReceiveSpell(spell)
 	if spell.target and spell.target.ptr == player.ptr and spell.owner.type == TYPE_HERO then
+		print(spell.name)
+	end
+	if spell.owner.ptr == player.ptr then
 		--print(spell.name)
 	end
 end
