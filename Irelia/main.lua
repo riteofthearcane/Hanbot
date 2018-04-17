@@ -372,61 +372,52 @@ local TargetSelection = function(res, obj, dist)
 end
 
 function QReductionMultiplier(target)
-  local multiplier = 1
+	local multiplier = 1
   
-  if player.buff["summonerexhaust"] then
-	multiplier = multiplier * 0.6
-  end
+	if player.buff["summonerexhaust"] then
+		multiplier = multiplier * 0.6
+	end
+	if player.buff["itemphantomdancerdebuff"] then
+		multiplier = multiplier * 0.88
+	end
+	if player.buff["itemsmitechallenge"] then
+		multiplier = multiplier * 0.8
+	end
+	if target.buff["ferocioushowl"] then
+		multiplier = multiplier * (0.55 - (target:spellSlot(3).level * 0.1))
+	end
+	if target.buff["braumshieldraise"] then --idk if this applies to twitch/kalista e
+		multiplier = multiplier * (0.725 - (target:spellSlot(2).level * 0.025))
+	end
+	if target.buff["garenw"] then --first 0.75 seconds reduces 60%
+		multiplier = multiplier * 0.7
+	end
+	if target.buff["gragaswself"] then
+		multiplier = multiplier * (0.92 - (target:spellSlot(1).level * 0.02))
+	end
+	if target.buff["galiorallybuff"] then
+		multiplier = multiplier * ((0.85 - (target:spellSlot(3).level * 0.05)) - (0.08 * (target.bonusSpellBlock / 100)))
+	end
+	if target.buff["moltenshield"] then
+		multiplier = multiplier * (0.90 - (target:spellSlot(2).level * 0.06))
+	end
+	if target.buff["meditate"] then
+		multiplier = multiplier * (0.55 - (target:spellSlot(1).level * 0.05))
+	end
+	if target.buff["sonapassivedebuff"] then
+		multiplier = multiplier * (0.75 - (0.04 * (common.GetTotalAP(target) / 100)))
+	end
+	if target.buff["malzaharpassiveshield"] then
+		multiplier = multiplier * 0.1
+	end
+	if target.buff["warwicke"] then
+		multiplier = multiplier * (0.70 - (target:spellSlot(2).level * 0.05))
+	end
+	if target.buff["ireliawdefense"] then
+		multiplier = multiplier * ((0.60 - (target:spellSlot(1).level * 0.05)) - (0.07 * (common.GetTotalAP(target) / 100)))
+	end
   
-  if player.buff["itemphantomdancerdebuff"] then
-	multiplier = multiplier * 0.88
-  end
-  
-  if player.buff["itemsmitechallenge"] then
-	multiplier = multiplier * 0.8
-  end
-  
-  if target.buff["ferocioushowl"] then
-	multiplier = multiplier * (0.55 - (target:spellSlot(3).level * 0.1))	
-  end
-  
-  if target.buff["braumshieldraise"] then --idk if this applies to twitch/kalista e
-	multiplier = multiplier * (0.725 - (target:spellSlot(2).level * 0.025))
-  end
-  
-  if target.buff["garenw"] then
-	multiplier = multiplier * 0.7
-  end
-  
-  if target.buff["gragaswself"] then
-	multiplier = multiplier * (0.92 - (target:spellSlot(1).level * 0.02))
-  end
-  
-  if target.buff["galiorallybuff"] then
-	multiplier = multiplier * ((0.85 - (target:spellSlot(3).level * 0.05)) - (0.08 * (target.bonusSpellBlock / 100)))
-  end
-  
-  if target.buff["moltenshield"] then
-	multiplier = multiplier * (0.90 - (target:spellSlot(2).level * 0.06))
-  end
-  
-  if target.buff["meditate"] then
-	multiplier = multiplier * (0.55 - (target:spellSlot(1).level * 0.05))
-  end
-  
-  if target.buff["sonapassivedebuff"] then
-	multiplier = multiplier * (0.75 - (0.04 * (common.GetTotalAP(target) / 100)))
-  end
-  
-  if target.buff["malzaharpassiveshield"] then
-	multiplier = multiplier * 0.1
-  end
-  
-  if target.buff["warwicke"] then
-	multiplier = multiplier * (0.70 - (target:spellSlot(1).level * 0.05))
-  end
-  
-  return multiplier
+	return multiplier
 end
 
 function GetQDamage(target)
