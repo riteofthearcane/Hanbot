@@ -155,9 +155,9 @@ blockSpells = { --add passives like braum and talon
 	["ezrealtrueshotbarrage"] = {priority = "low", delay = 0}, 
 	["terrify"] = {priority = "high", delay = 0}, 
 	["crowstorm"] = {priority = "high", delay = 0}, --check
-	["galiow"] = {priority = "high", delay = 0}, --check
+	["galiow2"] = {priority = "high", delay = 0}, --check
 	["galioe"] = {priority = "high", delay = 0},
-	["galior"] = {priority = "high", delay = 1.35},
+	["galior"] = {priority = "high", delay = 2.2},
 	["fizzw"] = {priority = "low", delay = 0}, --check
 	["fizzjumptwo"] = {priority = "medium", delay = 0}, 
 	["parley"] = {priority = "low", delay = 0}, 
@@ -191,8 +191,6 @@ blockSpells = { --add passives like braum and talon
 	["jhinrshot"] = {priority = "high", delay = 0}, --4th shot missile = "jhinrshotmis4"
 	["karthusfallenone"] = {priority = "high", delay = 2},
 	["nulllance"] = {priority = "low", delay = 0},
-	["kaynr"] = {priority = "high", delay = 0},
-
 	["katarinar"] = {priority = "high", delay = 0},
 	["kennenshurikenhurlmissile1"] = {priority = "low", delay = 0},
 	["khazixq"] = {priority = "high", delay = 0},
@@ -232,17 +230,15 @@ blockSpells = { --add passives like braum and talon
 	["olafrecklessstrike"] = {priority = "medium", delay = 0},
 	["orianadissonancecommand"] = {priority = "high", delay = 0.4}, 
 	["orianadetonatecommand"] = {priority = "high", delay = 0.4}, 
-	["ornnw"] = {priority = "medium", delay = 0}, --check 
 	["ornne"] = {priority = "high", delay = 0},
-	["ornnr"] = {priority = "high", delay = 0}, --check 
+	["ornnrcharge"] = {priority = "high", delay = 0}, --check 
 	["pantheonq"] = {priority = "low", delay = 0}, 
 	["pantheonw"] = {priority = "high", delay = 0}, 
 	["poppypassiveattack"] = {priority = "low", delay = 0}, 
 	["poppye"] = {priority = "high", delay = 0}, 
 	["quinnq"] = {priority = "low", delay = 0}, 
 	["quinne"] = {priority = "high", delay = 0}, 
-	["rakanw"] = {priority = "high", delay = 1.0}, --check delay 
-	--rammus q
+	["rakanw"] = {priority = "high", delay = 0.55},
 	["puncturingtaunt"] = {priority = "high", delay = 0}, 
 	["reksaiwburrowed"] = {priority = "high", delay = 0}, 
 	["reksaie"] = {priority = "medium", delay = 0}, 
@@ -269,7 +265,7 @@ blockSpells = { --add passives like braum and talon
 	["sionr"] = {priority = "high", delay = 0}, 
 	["skarnerimpale"] = {priority = "high", delay = 0}, 
 	["sonar"] = {priority = "high", delay = 0}, 
-	--["swaine"] = {priority = "high", delay = 0}, 
+	["swaine"] = {priority = "high", delay = 0}, 
 	["swainpdummycast"] = {priority = "high", delay = 0}, 
 	["swainrsoulflare"] = {priority = "high", delay = 0}, 
 	["syndraq"] = {priority = "low", delay = 0.4}, 	
@@ -428,7 +424,7 @@ function GetQDamage(target)
 	local ratio = common.GetTotalAD()*0.7
 	local total = flat + ratio 
 	if target.type == TYPE_MINION then
-		total = total * 1.6
+		total = total * 1.7
 	end
 	totalPhysical = total + totalPhysical
 	
@@ -1022,12 +1018,6 @@ end
 local function OnSpell(spell)
 	AutoInterrupt(spell)
 	--ReceiveSpell(spell)
-	if spell.target and spell.target.ptr == player.ptr and spell.owner.type == TYPE_HERO then
-		print(spell.name)
-	end
-	if spell.owner.ptr == player.ptr then
-		--print(spell.name)
-	end
 end
 
 local function CreateObj(object)
