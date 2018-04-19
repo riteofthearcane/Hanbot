@@ -383,7 +383,19 @@ passiveBaseScale = {2.5, 2,5, 3.5, 3.5, 4.5, 4.5, 5.5, 5.5, 6,5, 7.5, 8.5, 9.5, 
 passiveADScale = {2,2,2,2,2,2,3,3,3,3,3,3,4,4,4,4,4,4}
 PTAScale = { 0.08, 0.08, 0.08, 0.09, 0.09, 0.09, 0.09, 0.10, 0.10, 0.10, 0.10, 0.11, 0.11, 0.11, 0.11, 0.12, 0.12, 0.12 }
 sheenTimer = os.clock()
-
+inFountain = true
+itemList = {
+	hasSheen = false,
+    hasTF = false,
+	hasBOTRK = false,
+	hasTitanic = false,
+	hasWitsEnd = false,
+	hasRecurve = false,
+	hasGuinsoo = false,
+}
+target = nil
+target2 = nil
+	
 script.menu = menu("ireliamenu", script.name)
 	ts.load_to_menu(script.menu)
 	script.menu:keybind("r", "Semi-manual R", "Z", nil)
@@ -416,6 +428,7 @@ script.menu = menu("ireliamenu", script.name)
 			script.menu.w[name]:slider("HP", "HP under",100,1,100,1)
 		end
 	end
+
 	
 local TargetSelectionNearMouse = function(res, obj, dist)
 	if dist < 2000 and obj.pos:dist(game.mousePos) <= script.menu.searchrange:get() then --add mouse check
@@ -426,8 +439,7 @@ end
 
 local TargetSelection = function(res, obj, dist)
 	if dist <= e.range then	
-		targetNearMouse = ts.get_result(TargetSelectionNearMouse).obj
-		if targetNearMouse and obj ~= targetNearMouse then
+		if target and obj ~= target then
 			res.obj = obj
 			return true
 		end
@@ -496,67 +508,34 @@ function GetQDamage(target)
 	totalPhysical = total + totalPhysical
 	
 	--onhit
-	local hasSheen = false
-	local hasTF = false
-	local hasBOTRK = false
-	local hasTitanic = false
-	local hasWitsEnd = false
-	local hasRecurve = false
-	local hasGuinsoo = false
-	for i = 0, 5 do 
-		if player:itemID(i) == 3078 then
-			hasTF = true	
-		end
-		if player:itemID(i) == 3057 then
-			hasSheen = true
-		end
-		if player:itemID(i) == 3153 then
-			hasBOTRK = true
-		end
-		if player:itemID(i) == 3748 then
-			hasTitanic = true
-		end
-		if player:itemID(i) == 3748 then
-			hasTitanic = true
-		end
-		if player:itemID(i) == 3091 then
-			hasWitsEnd = true
-		end
-		if player:itemID(i) == 1043 then
-			hasRecurve = true
-		end
-		if player:itemID(i) == 3124 then
-			hasGuinsoo = true
-		end
-	end
-		
+
 	local onhitPhysical = 0
 	local onhitMagical = 0
 		
-	if hasTF and (os.clock() >= sheenTimer or player.buff[sheen]) then
+	if itemList.hasTF and (os.clock() >= sheenTimer or player.buff[sheen]) then
 			onhitPhysical = onhitPhysical + 2*player.baseAttackDamage
 	end
-	if hasSheen and not hasTF and (os.clock() >= sheenTimer or player.buff[sheen]) then
+	if itemList.hasSheen and not itemList.hasTF and (os.clock() >= sheenTimer or player.buff[sheen]) then
 		onhitPhysical = onhitPhysical + player.baseAttackDamage
 	end
-	if hasBOTRK then
+	if itemList.hasBOTRK then
 		if target.type == TYPE_MINION then
 			onhitPhysical = onhitPhysical + math.min(math.max(15, target.health*0.08),60)
 		else 
 			onhitPhysical = onhitPhysical + math.max(15, target.health*0.08)
 		end
 	end
-	if hasTitanic then
+	if itemList.hasTitanic then
 		if player.buff["itemtitanichydracleavebuff"] then
 			onhitPhysical = onhitPhysical + 40 + player.maxHealth/10
 		else
 			onhitPhysical = onhitPhysical + 5 + player.maxHealth/100
 		end
 	end
-	if hasRecurve then
+	if itemList.hasRecurve then
 		onhitPhysical = onhitPhysical+10
 	end
-	if hasWitsEnd then
+	if itemList.hasWitsEnd then
 		onhitMagical = onhitMagical + 42
 	end
 		
@@ -567,7 +546,7 @@ function GetQDamage(target)
 		onhitMagical = onhitMagical + passiveTotalDmg
 	end
 	
-	if hasGuinsoo then
+	if itemList.hasGuinsoo then
 		onhitPhysical = onhitPhysical + 5 + common.GetBonusAD(player)/10
 		onhitMagical = onhitMagical + 5 + common.GetTotalAP(player)/10	
 	end
@@ -676,7 +655,6 @@ function EvalPriority(spell)
 	if not script.menu.w[spell.name:lower()].priority:get() then
 		return false
 	end
-	local target = ts.get_result(TargetSelectionNearMouse).obj
 	local priority = script.menu.w[spell.name:lower()].priority:get()
 	print(priority)
 	if priority == 1 then 
@@ -1009,11 +987,48 @@ function AutoInterrupt(spell)
 	end
 end
 
+function updateItems()
+	for i in pairs(itemList) do
+		itemList[i] = false
+	end
+	for i = 0, 5 do 
+		if player:itemID(i) == 3078 then
+			itemList.hasTF = true	
+		end
+		if player:itemID(i) == 3057 then
+			itemList.hasSheen = true
+		end
+		if player:itemID(i) == 3153 then
+			itemListhasBOTRK = true
+		end
+		if player:itemID(i) == 3748 then
+			itemList.hasTitanic = true
+		end
+		if player:itemID(i) == 3091 then
+			itemList.hasWitsEnd = true
+		end
+		if player:itemID(i) == 1043 then
+			itemList.hasRecurve = true
+		end
+		if player:itemID(i) == 3124 then
+			itemList.hasGuinsoo = true
+		end
+	end
+end
 
 local function OnTick()
-	local target = ts.get_result(TargetSelectionNearMouse).obj
-	local target2 = ts.get_result(TargetSelection).obj
+	target = ts.get_result(TargetSelectionNearMouse).obj
+	target2 = ts.get_result(TargetSelection).obj
 	local bestQ = nil
+	
+	if common.NearFountain() then
+		inFountain = true
+	else
+		if inFountain~= common.NearFountain() then
+			updateItems()
+		end
+		inFountain = false
+	end
 	
 	if target and common.IsValidTarget(target) then
 		if orb.menu.combat:get() then	
