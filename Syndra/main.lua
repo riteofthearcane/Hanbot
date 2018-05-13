@@ -1,12 +1,7 @@
---[[
-Drawings break with R usage
-Need to add E and maybe WE
-]]
-
 local script = {}
 script.name = "Syndra"
 script.developer = "asdf"
-script.version = 1.0
+script.version = 1.1
 
 local avada_lib = module.lib('avada_lib')
 if not avada_lib then
@@ -43,6 +38,7 @@ q =  {
 	boundingRadiusMod = 0
 }
 
+qq = false
 w = {
 	type = 'circular',
 	speed = 1450, 
@@ -59,6 +55,8 @@ eVar = {
 	range = 700,
 	delay = 0.25,
 	human = 0.05,
+	EQdelay = 0.25,
+	angle = 40
 }
 
 qe = {
@@ -105,12 +103,12 @@ menu = menu("syndra", script.name)
 	menu:keybind("qe", "QE Key", "Z", nil)
 	ts.load_to_menu(menu)
 	
-function toVec2(vec3)
-	return vec2(vec3.x, vec3.z)
-end
-
 function toVec3(vec2)
 	return vec3(vec2.x, game.mousePos.y, vec2.y)
+end
+
+function toVec2(vec3)
+	return vec2(vec3.x, vec3.z)
 end
 
 function TraceFilter(spell, seg, obj, slow)
@@ -148,7 +146,7 @@ end
 
 function CastQ(target, slow)
 	sloww = slow or false
-	if player:spellSlot(0).state == 0 then
+	if player:spellSlot(0).state == 0 and not qq then
 		local seg = gpred.circular.get_prediction(q, target)
 		if seg and TraceFilter(q, seg, target, sloww) then
 			player:castSpell("pos", 0, vec3(seg.endPos.x, target.pos.y, seg.endPos.y))
@@ -198,9 +196,11 @@ end
 function CastW1() --need to add range checks
 	if player:spellSlot(1).state == 0 and player:spellSlot(1).name == "SyndraW" and os.clock() >= WDelay then
 		enemiesInRange = common.GetEnemyHeroesInRange(w.range, player.pos)
-		target = GetGrabTarget()
-		if target then
-			player:castSpell("pos", 1, target.pos)
+		if #enemiesInRange >= 1 then 
+			target = GetGrabTarget()
+			if target then
+				player:castSpell("pos", 1, target.pos)
+			end
 		end
 	end
 end
@@ -223,34 +223,73 @@ function CalcQESpeed(target)
 		endPos = vec3(seg.endPos.x, target.pos.y, seg.endPos.y)
 		dist = startPos:dist(endPos)
 		if dist >= q.range then
-			qe.speed = (eVar.speed1 * eVar.range + (dist - q.range) * eVar.speed2)/ dist
+			qe.speed = (eVar.speed1 * (q.range - 75) + (dist - q.range + 75) * eVar.speed2)/ dist
 		else
 			qe.speed = eVar.speed1
 		end
 	end
 end
 
-function QE(startPos, endPos)
-	dist = startPos:dist(endPos)
-	qPos = dist >= q.range and startPos:lerp(endPos, q.range / startPos:dist(endPos)) or endPos
-	player:castSpell("pos", 0, qPos)
-	common.DelayAction(function(pos)
-		player:castSpell("pos", 2, pos)
-		WDelay = os.clock() + 0.5
-	end,
-	eVar.human, {endPos})
+function CanEQ(qPos, predPos, target)
+	--e orb check
+	for orb in pairs(orbs) do
+		if player.pos:dist(target.pos) >= player.pos:dist(orb.pos) and math.abs(mathf.angle_between(player.pos, orb.pos, qPos)*180/math.pi) <= eVar.angle / 2 + 5 then
+			closest = mathf.closest_vec_line_seg(toVec2(predPos), player.pos2D, toVec2(qPos))
+			if closest and toVec3(closest):dist(predPos) <= qe.width + target.boundingRadius + 15 then
+				return false
+			end
+		end
+	end
+	--wall check
+	interval = 50
+	count = math.floor(predPos:dist(qPos)/ interval)
+	diff = (qPos - player.pos):norm()
+	for i = 0, count do 
+		pos = predPos + diff * i * interval
+		if navmesh.isWall(pos) then
+			return false
+		end
+	end
+	--cc check
+	if target.buff[5] or target.buff[8] or target.buff[24] or target.buff[11] or target.buff[22] or target.buff[8] or target.buff[21] then
+		return false
+	end
+	return true
 end
 
+function QE(startPos, endPos, target, force)
+	always = force or false
+	dist = startPos:dist(endPos)
+	qPos = startPos:lerp(endPos, (q.range-75) / startPos:dist(endPos))
+	if dist >= q.range + 50 or force then
+		player:castSpell("pos", 0, qPos)
+		common.DelayAction(function(pos)
+			player:castSpell("pos", 2, pos)
+		end,
+		eVar.human, {endPos})
+	else 
+		if CanEQ(qPos, endPos, target) then
+			player:castSpell("pos", 2, endPos)
+			qq = true
+			common.DelayAction(function(pos)
+				player:castSpell("pos", 0, pos)
+				qq = false
+			end,
+			eVar.EQdelay, {qPos})
+		end
+	end
+	WDelay = os.clock() + 0.5
+end
 
-
-function CastQE(target, sloww)
-	if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 then
+function CastQE(target, sloww, force)
+	always = force or false
+	if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 and player.pos:dist(target.pos) >= 200 then
 		CalcQESpeed(target)
 		seg = gpred.linear.get_prediction(qe, target)
 		if seg and TraceFilter(qe, seg, target, true) then
 			startPos = vec3(seg.startPos.x, target.pos.y, seg.startPos.y)
 			endPos = vec3(seg.endPos.x, target.pos.y, seg.endPos.y)
-			QE(startPos, endPos)
+			QE(startPos, endPos, target, always)
 		end
 	end
 end
@@ -263,7 +302,7 @@ function AntiGap()
 				CalcQESpeed(enemy)
 				local predPos = gpred.core.project(player.path.serverPos2D, enemy.path, network.latency + qe.delay, qe.speed, enemy.path.dashSpeed)
 				if predPos and predPos:dist(player.path.serverPos2D) <= qe.range then
-					QE(player.pos,vec3(predPos.x, enemy.y, predPos.y))
+					QE(player.pos,vec3(predPos.x, enemy.y, predPos.y), enemy, true) -- for now
 				end
 			end
 		end
@@ -275,7 +314,7 @@ function Interrupt(spell)
 		if spell.owner.type == TYPE_HERO and spell.owner.team == TEAM_ENEMY then
 			for _, sp in pairs(interrupt) do 
 				if string.lower(spell.name) == sp and common.IsValidTarget(spell.owner) and player.pos:dist(spell.owner.pos) <= qe.range then
-					CastQE(target)
+					CastQE(target, true)
 				end
 			end
 		end
@@ -298,23 +337,20 @@ function QEKey()
 	end
 end
 
-function CastE()
+function CastE(target)
 	if player:spellSlot(2).state == 0 then
-		enemiesInRange = common.GetEnemyHeroesInRange(qe.range, player.pos)
-		for _, enemy in pairs(enemiesInRange) do
-			if common.IsValidTarget(enemy) then
-				CalcQESpeed(enemy)
-				seg = gpred.linear.get_prediction(qe, enemy)
-				if seg and TraceFilter(qe, seg, enemy) then
-					endPos = vec3(seg.endPos.x, enemy.pos.y, seg.endPos.y)
-					for orb in pairs(orbs) do
-						if player.pos:dist(orb.pos) <= q.range then
-							diff = (orb.pos - player.pos):norm()
-							extendPos = player.pos + diff * qe.range
-							closest = mathf.closest_vec_line_seg(toVec2(endPos), player.pos2D, toVec2(extendPos))
-							if closest and toVec3(closest):dist(endPos) <= qe.width + enemy.boundingRadius then
-								player:castSpell('pos', 2, orb.pos)
-							end
+		if common.IsValidTarget(target) then
+			CalcQESpeed(target)
+			seg = gpred.linear.get_prediction(qe, target)
+			if seg and TraceFilter(qe, seg, target) then
+				endPos = vec3(seg.endPos.x, target.pos.y, seg.endPos.y)
+				for orb in pairs(orbs) do
+					if player.pos:dist(orb.pos) <= q.range then
+						diff = (orb.pos - player.pos):norm()
+						extendPos = player.pos + diff * qe.range
+						closest = mathf.closest_vec_line_seg(toVec2(endPos), player.pos2D, toVec2(extendPos))
+						if closest and toVec3(closest):dist(endPos) <= qe.width + target.boundingRadius then
+							player:castSpell('pos', 2, orb.pos)
 						end
 					end
 				end
@@ -324,11 +360,14 @@ function CastE()
 end
 
 function GetRDamage(target)
-	damage = player:spellSlot(3).stacks * (r.damage[player:spellSlot(3).level]+ 0.2 * common.GetTotalAP(player))
+	damage = math.max(player:spellSlot(3).stacks, 3) * (r.damage[player:spellSlot(3).level]+ 0.2 * common.GetTotalAP(player))
 	return common.CalculateMagicDamage(target, damage, player)
 end
 
 function RConditions(target)
+	if target.pos:dist(player.pos) > r.range then
+		return false
+	end
 	if common.GetPercentHealth(player) <= common.GetPercentHealth(target) then 
 		return true
 	end
@@ -345,7 +384,7 @@ function RConditions(target)
 	if player.mana < 200 then 
 		return true
 	end
-	if common.GetShieldedHealth("AP", target) <= GetRDamage(target) / player:spellSlot(3).stacks * 1.5 then
+	if common.GetShieldedHealth("AP", target) <= GetRDamage(target) / player:spellSlot(3).stacks * 2 then
 		return false
 	end
 	if target.spellBlock < 50 then 
@@ -356,13 +395,10 @@ function RConditions(target)
 	end
 end
 
-function CastR()
+function CastR(target)
 	if player:spellSlot(3).state == 0 then
-		enemiesInRange = common.GetEnemyHeroesInRange(r.range, player.pos)
-		for _, enemy in pairs(enemiesInRange) do
-			if GetRDamage(enemy) >= common.GetShieldedHealth("AP", enemy) and RConditions(enemy) then
-				player:castSpell('obj', 3, enemy)
-			end
+		if GetRDamage(target) >= common.GetShieldedHealth("AP", target) and RConditions(target) then
+			player:castSpell('obj', 3, target)
 		end
 	end
 end
@@ -378,21 +414,23 @@ end
 function OnTick()
 	AntiGap()
 	for i, j in pairs(orbs) do
-		if not i or os.clock() >= j then 
+		if not i or i.isDead or os.clock() >= j then 
 			orbs[i] = nil
 		end
 	end
 	local target = ts.get_result(TargetSelection).obj
 	if target then
 		if orb.menu.combat:get() then
-			CastR()
-			CastE()
+			enemiesInRange = common.GetEnemyHeroesInRange(qe.range, player.pos)
+			for _, enemy in pairs(enemiesInRange) do
+				CastR(enemy)
+				CastE(enemy)
+			end
 			CastW2(target, true)
 			CastQE(target)
 			CastW1()
 			CastQ(target, true)
 		end
-		
 		if orb.menu.hybrid:get() then
 			CastQ(target, true)
 		end
