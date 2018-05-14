@@ -36,9 +36,12 @@ q =  {
 	delay = 0.625, 
 	radius = 200, 
 	boundingRadiusMod = 0
+	mana = {40, 50, 60, 70, 80}
 }
 
 qq = false
+
+
 w = {
 	type = 'circular',
 	speed = 1450, 
@@ -100,7 +103,7 @@ interrupt = {
 }
 
 menu = menu("syndra", script.name)
-	menu:keybind("qe", "QE Key", "Z", nil)
+	menu:keybind("qe", "QE/EQ Key", "Z", nil)
 	ts.load_to_menu(menu)
 	
 function toVec3(vec2)
@@ -215,6 +218,10 @@ function CastW2(target, sloww)
 	end
 end
 
+function QEMana()
+	return 50 + q.mana[player:spellSlot(0).level]
+end
+
 function CalcQESpeed(target)
 	qe.speed = eVar.testSpeed
 	seg = gpred.linear.get_prediction(qe, target)
@@ -258,6 +265,9 @@ function CanEQ(qPos, predPos, target)
 end
 
 function QE(startPos, endPos, target, force)
+	if player.mana < QEMana() then 
+		return
+	end
 	always = force or false
 	dist = startPos:dist(endPos)
 	qPos = startPos:lerp(endPos, (q.range-75) / startPos:dist(endPos))
@@ -283,7 +293,7 @@ end
 
 function CastQE(target, sloww, force)
 	always = force or false
-	if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 and player.pos:dist(target.pos) >= 200 then
+	if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 and player.mana >= QEMana() then
 		CalcQESpeed(target)
 		seg = gpred.linear.get_prediction(qe, target)
 		if seg and TraceFilter(qe, seg, target, true) then
@@ -302,7 +312,7 @@ function AntiGap()
 				CalcQESpeed(enemy)
 				local predPos = gpred.core.project(player.path.serverPos2D, enemy.path, network.latency + qe.delay, qe.speed, enemy.path.dashSpeed)
 				if predPos and predPos:dist(player.path.serverPos2D) <= qe.range then
-					QE(player.pos,vec3(predPos.x, enemy.y, predPos.y), enemy, true) -- for now
+					QE(player.pos,vec3(predPos.x, enemy.y, predPos.y), enemy, true) 
 				end
 			end
 		end
@@ -374,19 +384,21 @@ function RConditions(target)
 	if common.GetPercentHealth(player) <= 0.3 then 
 		return true
 	end
+	
+	if common.GetShieldedHealth("AP", target) <= GetRDamage(target) / player:spellSlot(3).stacks * 2 then
+		return false
+	end
+	
 	enemiesInRange1 = common.GetEnemyHeroesInRange(400, player.pos)
 	enemiesInRange2 = common.GetEnemyHeroesInRange(2500, player.pos)
-
 	alliesInRange = common.GetAllyHeroesInRange(400, target.pos)
-	if #enemiesInRange1 >= #alliesInRange then 
+	if #enemiesInRange1 > #alliesInRange then 
 		return true
 	end
 	if player.mana < 200 then 
 		return true
 	end
-	if common.GetShieldedHealth("AP", target) <= GetRDamage(target) / player:spellSlot(3).stacks * 2 then
-		return false
-	end
+	
 	if target.spellBlock < 50 then 
 		return true
 	end
