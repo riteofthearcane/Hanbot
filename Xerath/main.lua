@@ -23,17 +23,11 @@ elseif avada_lib.version < 1 then
 end
 
 local common = avada_lib.common
-local ts = avada_lib.targetSelector
-local orb = module.internal("orb")
 local gpred = module.internal("pred")
 local evade = module.seek("evade")
 
 
 script.menu = menu("xerathmenu", script.name)
-	script.menu:boolean("evade","Disable Evade during R", true)
-	script.menu:boolean("qdraw","Q drawings", true)
-	script.menu:boolean("rdraw","R drawings", true)
-	script.menu:boolean("rdrawmini","R drawings on minimap", true)
 	script.menu:menu("antigap", "Anti-gapcloser E")
 	for i = 0, objManager.enemies_n - 1 do
 		local enemy = objManager.enemies[i]
@@ -65,16 +59,10 @@ local function OnTick()
 end
 
 local function OnDraw()
-	if script.menu.qdraw:get() then
-		graphics.draw_circle(player.pos, 1550, 1, color, 32)
-	end
+	graphics.draw_circle(player.pos, 1550, 1, color, 32)
 	if r.level > 0 then 
-		if script.menu.rdraw:get() then
-			graphics.draw_circle(player.pos, (2000 + (1200*r.level)), 1, color, 32)
-		end
-		if script.menu.rdrawmini:get() then
-			minimap.draw_circle(player.pos, (2000 + (1200*r.level)), 1, color, 32)
-		end
+		graphics.draw_circle(player.pos, (2000 + (1200*r.level)), 1, color, 32)
+		minimap.draw_circle(player.pos, (2000 + (1200*r.level)), 1, color, 32)
 	end
 end
 
@@ -93,7 +81,7 @@ end
 cb.add(cb.tick, OnTick)
 cb.add(cb.draw, OnDraw)
 
-if evade and script.menu.evade:get() then
+if evade then
 	cb.add(cb.updatebuff,OnUpdateBuff)
 	cb.add(cb.removebuff,OnRemoveBuff)
 end
