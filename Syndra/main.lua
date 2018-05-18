@@ -35,7 +35,7 @@ q =  {
 	range = 800, 
 	delay = 0.625, 
 	radius = 200, 
-	boundingRadiusMod = 0
+	boundingRadiusMod = 0,
 	mana = {40, 50, 60, 70, 80}
 }
 
