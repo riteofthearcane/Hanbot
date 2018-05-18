@@ -51,6 +51,8 @@ w = {
 	boundingRadiusMod = 0
 }
 
+w_obj = nil
+
 eVar = {
 	testSpeed = 2000,
 	speed1 = 2500,
@@ -103,7 +105,13 @@ interrupt = {
 }
 
 menu = menu("syndra", script.name)
-	menu:keybind("qe", "QE/EQ Key", "Z", nil)
+	menu:keybind("qe", "Stun Key", "Z", nil)
+	menu:dropdown("stunMethod", "Stun Method", 1, {"EQ", "QE"})
+	menu:menu("useR", "Use R on")
+	for i = 0, objManager.enemies_n - 1 do
+		local enemy = objManager.enemies[i]
+		menu.useR:boolean(enemy.name, enemy.name, true)
+	end
 	ts.load_to_menu(menu)
 	
 function toVec3(vec2)
@@ -210,8 +218,8 @@ end
 
 function CastW2(target, sloww)
 	sloww = slow or false
-	if player:spellSlot(1).state == 0 and player:spellSlot(1).name == "SyndraWCast" and os.clock() >= WDelay then
-		local seg = gpred.circular.get_prediction(w, target)
+	if player:spellSlot(1).state == 0 and w_obj and player:spellSlot(1).name == "SyndraWCast" and os.clock() >= WDelay then
+		local seg = gpred.circular.get_prediction(w, target, toVec2(w_obj.pos))
 		if seg and TraceFilter(w, seg, target, sloww) then
 			player:castSpell("pos", 1, vec3(seg.endPos.x, target.pos.y, seg.endPos.y))
 		end 
@@ -264,6 +272,24 @@ function CanEQ(qPos, predPos, target)
 	return true
 end
 
+function StunQE(pos1, pos2)
+	player:castSpell("pos", 0, pos1)
+	common.DelayAction(function(pos)
+		player:castSpell("pos", 2, pos)
+	end,
+	eVar.human, {pos2})
+end
+
+function StunEQ(pos1, pos2)
+	player:castSpell("pos", 2, pos2)
+	qq = true
+	common.DelayAction(function(pos)
+		player:castSpell("pos", 0, pos)
+		qq = false
+	end,
+	eVar.EQdelay, {pos1})
+end
+
 function QE(startPos, endPos, target, force)
 	if player.mana < QEMana() then 
 		return
@@ -272,20 +298,15 @@ function QE(startPos, endPos, target, force)
 	dist = startPos:dist(endPos)
 	qPos = startPos:lerp(endPos, (q.range-75) / startPos:dist(endPos))
 	if dist >= q.range + 50 or force then
-		player:castSpell("pos", 0, qPos)
-		common.DelayAction(function(pos)
-			player:castSpell("pos", 2, pos)
-		end,
-		eVar.human, {endPos})
+		if menu.stunMethod:get() == 1 then
+			StunEQ(qPos, endPos)
+		end
+		if menu.stunMethod:get() == 2 then
+			StunQE(qPos, endPos)
+		end
 	else 
 		if CanEQ(qPos, endPos, target) then
-			player:castSpell("pos", 2, endPos)
-			qq = true
-			common.DelayAction(function(pos)
-				player:castSpell("pos", 0, pos)
-				qq = false
-			end,
-			eVar.EQdelay, {qPos})
+			StunEQ(qPos, endPos)
 		end
 	end
 	WDelay = os.clock() + 0.5
@@ -293,7 +314,7 @@ end
 
 function CastQE(target, sloww, force)
 	always = force or false
-	if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 and player.mana >= QEMana() then
+	if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 and player.mana >= QEMana() and player.pos:dist(target.pos) >= 150 then
 		CalcQESpeed(target)
 		seg = gpred.linear.get_prediction(qe, target)
 		if seg and TraceFilter(qe, seg, target, true) then
@@ -375,41 +396,42 @@ function GetRDamage(target)
 end
 
 function RConditions(target)
-	if target.pos:dist(player.pos) > r.range then
-		return false
-	end
-	if common.GetPercentHealth(player) <= common.GetPercentHealth(target) then 
-		return true
-	end
-	if common.GetPercentHealth(player) <= 0.3 then 
-		return true
-	end
+	return true
+	-- if target.pos:dist(player.pos) > r.range then
+		-- return false
+	-- end
+	-- if common.GetPercentHealth(player) <= common.GetPercentHealth(target) then 
+		-- return true
+	-- end
+	-- if common.GetPercentHealth(player) <= 0.3 then 
+		-- return true
+	-- end
 	
-	if common.GetShieldedHealth("AP", target) <= GetRDamage(target) / player:spellSlot(3).stacks * 2 then
-		return false
-	end
+	-- if common.GetShieldedHealth("AP", target) <= GetRDamage(target) / player:spellSlot(3).stacks * 2 then
+		-- return false
+	-- end
 	
-	enemiesInRange1 = common.GetEnemyHeroesInRange(400, player.pos)
-	enemiesInRange2 = common.GetEnemyHeroesInRange(2500, player.pos)
-	alliesInRange = common.GetAllyHeroesInRange(400, target.pos)
-	if #enemiesInRange1 > #alliesInRange then 
-		return true
-	end
-	if player.mana < 200 then 
-		return true
-	end
+	-- enemiesInRange1 = common.GetEnemyHeroesInRange(400, player.pos)
+	-- enemiesInRange2 = common.GetEnemyHeroesInRange(2500, player.pos)
+	-- alliesInRange = common.GetAllyHeroesInRange(400, target.pos)
+	-- if #enemiesInRange1 > #alliesInRange then 
+		-- return true
+	-- end
+	-- if player.mana < 200 then 
+		-- return true
+	-- end
 	
-	if target.spellBlock < 50 then 
-		return true
-	end
-	if #enemiesInRange2 <= 2 then 
-		return true
-	end
+	-- if target.spellBlock < 50 then 
+		-- return true
+	-- end
+	-- if #enemiesInRange2 <= 2 then 
+		-- return true
+	-- end
 end
 
 function CastR(target)
 	if player:spellSlot(3).state == 0 then
-		if GetRDamage(target) >= common.GetShieldedHealth("AP", target) and RConditions(target) then
+		if menu.useR[target.name] and menu.useR[target.name]:get() and GetRDamage(target) >= common.GetShieldedHealth("AP", target) and RConditions(target) then
 			player:castSpell('obj', 3, target)
 		end
 	end
@@ -457,6 +479,7 @@ function CreateObj(obj)
 		orbs[obj] = os.clock() + 6
 	end
 	if obj.name == "Syndra_Base_W_heldTarget_buf_02" then
+		w_obj = obj
 		for orb in pairs (orbs) do 
 			if orb.pos:dist(obj.pos) < 55 then
 				orbs[orb] = os.clock() + 6
