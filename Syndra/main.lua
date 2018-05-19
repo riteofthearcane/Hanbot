@@ -55,9 +55,10 @@ w = {
 eVar = {
 	testSpeed = 2000,
 	speed1 = 2500,
-	speed2 = 1600,
+	speed2 = 2000,
 	range = 700,
-	delay = 0.25,
+	QEdelay = 0.25,
+	EQdelay = 0.64,
 	human = 0.05,
 	EQdelay = 0.25,
 	angle = 40
@@ -65,9 +66,9 @@ eVar = {
 
 qe = {
 	type = "linear",
-	speed = 1600, 
+	speed = 10, 
 	range = 1250, 
-	delay = eVar.delay, 
+	delay = 0, 
 	width = 50, 
 	boundingRadiusMod = 1
 }
@@ -105,11 +106,10 @@ interrupt = {
 
 menu = menu("syndra", script.name)
 	menu:keybind("qe", "Stun Key", "Z", nil)
-	menu:dropdown("stunMethod", "Stun Method", 1, {"EQ", "QE"})
 	menu:menu("useR", "Use R on")
 	for i = 0, objManager.enemies_n - 1 do
 		local enemy = objManager.enemies[i]
-		menu.useR:boolean(enemy.name, enemy.charName, true)
+		menu.useR:boolean(enemy.charName, enemy.charName, true)
 	end
 	ts.load_to_menu(menu)
 	
@@ -138,7 +138,7 @@ function TraceFilter(spell, seg, obj, slow)
 	
 	if spell.type == "linear" then 
 		if gpred.trace.linear.hardlock(spell, seg, obj) then
-			return true5
+			return true
 		end
 		
 		if gpred.trace.linear.hardlockmove(spell, seg, obj) then
@@ -228,7 +228,7 @@ function QEMana()
 	return 50 + q.mana[player:spellSlot(0).level]
 end
 
-function CalcQESpeed(target, orbDist)
+function CalcQE(target, orbDist, fast)
 	orbDist = math.min(q.range, orbDist)
 	qe.speed = eVar.testSpeed
 	seg = gpred.linear.get_prediction(qe, target)
@@ -236,10 +236,11 @@ function CalcQESpeed(target, orbDist)
 		startPos = toVec3(seg.startPos)
 		endPos = toVec3(seg.endPos)
 		dist = startPos:dist(endPos)
-		if dist >= q.range then
-			qe.speed = (eVar.speed1 * (orbDist) + (dist - orbDist) * eVar.speed2)/ dist
+		qe.speed = (eVar.speed1 * (orbDist) + (dist - orbDist) * eVar.speed2)/ dist
+		if startPos:dist(endPos) > q.range or fast then
+			qe.delay = eVar.QEdelay
 		else
-			qe.speed = eVar.speed1
+			qe.delay = eVar.EQdelay
 		end
 	end
 end
@@ -289,37 +290,32 @@ function StunEQ(pos1, pos2)
 	eVar.EQdelay, {pos1})
 end
 
-function QE(startPos, endPos, target, force)
+function QE(startPos, endPos, target)
 	if player.mana < QEMana() then 
 		return
 	end
-	always = force or false
 	dist = startPos:dist(endPos)
 	qPos = startPos:lerp(endPos, (q.range-75) / startPos:dist(endPos))
-	if dist >= q.range + 50 or force then
-		if menu.stunMethod:get() == 1 then
-			StunEQ(qPos, endPos)
-		end
-		if menu.stunMethod:get() == 2 then
+	if dist >= q.range - 75 then
+		if qe.delay == eVar.QEdelay then
 			StunQE(qPos, endPos)
 		end
 	else 
-		if CanEQ(qPos, endPos, target) then
+		if CanEQ(qPos, endPos, target) and qe.delay == eVar.EQdelay then
 			StunEQ(qPos, endPos)
 		end
 	end
 	WDelay = os.clock() + 0.5
 end
 
-function CastQE(target, sloww, force)
-	always = force or false
+function CastQE(target, sloww)
 	if player:spellSlot(0).state == 0 and player:spellSlot(2).state == 0 and player.mana >= QEMana() and player.pos:dist(target.pos) >= 150 then
-		CalcQESpeed(target, q.range - 75)
+		CalcQE(target, q.range - 75)
 		seg = gpred.linear.get_prediction(qe, target)
 		if seg and TraceFilter(qe, seg, target, true) then
 			startPos = vec3(seg.startPos.x, target.pos.y, seg.startPos.y)
 			endPos = vec3(seg.endPos.x, target.pos.y, seg.endPos.y)
-			QE(startPos, endPos, target, always)
+			QE(startPos, endPos, target)
 		end
 	end
 end
@@ -330,7 +326,7 @@ function Interrupt(spell)
 		if spell.owner.type == TYPE_HERO and spell.owner.team == TEAM_ENEMY then
 			for _, sp in pairs(interrupt) do 
 				if string.lower(spell.name) == sp and common.IsValidTarget(spell.owner) and player.pos:dist(spell.owner.pos) <= qe.range then
-					CastQE(target, true)
+					CastQE(target)
 				end
 			end
 		end
@@ -357,8 +353,8 @@ function CastE(target)
 	if player:spellSlot(2).state == 0 then
 		if common.IsValidTarget(target) then
 			for orb in pairs(orbs) do
-				if player.pos:dist(orb.pos) <= qe.range then
-					CalcQESpeed(target, player.pos:dist(orb.pos))
+				if player.pos:dist(orb.pos) <= q.range then
+					CalcQE(target, player.pos:dist(orb.pos), true)
 					seg = gpred.linear.get_prediction(qe, target)
 					if seg and TraceFilter(qe, seg, target) then
 						endPos = vec3(seg.endPos.x, target.pos.y, seg.endPos.y)
@@ -391,39 +387,41 @@ function RConditions(target)
 	if common.GetPercentHealth(player) <= 0.3 then 
 		return true
 	end
-	
-	if common.GetShieldedHealth("AP", target) <= GetRDamage(target) / player:spellSlot(3).stacks * 2 and target.pos:dist(player.pos) < r.range * 3 / 4 then
+	if common.GetShieldedHealth("AP", target) <= GetRDamage(target) / player:spellSlot(3).stacks * 2 then
 		return false
 	end
-	
 	enemiesInRange1 = common.GetEnemyHeroesInRange(400, player.pos)
 	enemiesInRange2 = common.GetEnemyHeroesInRange(2500, player.pos)
 	alliesInRange = common.GetAllyHeroesInRange(400, target.pos)
 	if #enemiesInRange1 > #alliesInRange then 
 		return true
 	end
+
 	if player.mana < 200 then 
 		return true
 	end
-	
+
 	if target.spellBlock < 50 then 
 		return true
 	end
+
 	if #enemiesInRange2 <= 2 then 
 		return true
 	end
+
 end
 
 function CastR(target)
 	if player:spellSlot(3).state == 0 then
-		if menu.useR[target.charName] and menu.useR[target.charName]:get() and GetRDamage(target) >= common.GetShieldedHealth("AP", target) and RConditions(target) then
+
+		if menu.useR[target.charName]:get() and GetRDamage(target) >= common.GetShieldedHealth("AP", target) and RConditions(target) then
 			player:castSpell('obj', 3, target)
 		end
 	end
 end
 
 function TargetSelection(res, obj, dist)
-    if dist < 2000 then
+    if dist < qe.range then
       res.obj = obj
       return true
     end
@@ -456,6 +454,7 @@ function OnTick()
 	if menu.qe:get() then
 		QEKey()
 	end
+	
 end
 
 function CreateObj(obj)
@@ -479,6 +478,9 @@ end
 
 function OnSpell(spell)
 	Interrupt(spell)
+	if spell.name == "SyndraE" then
+		startT = os.clock()
+	end
 end
 
 function OnDraw()
