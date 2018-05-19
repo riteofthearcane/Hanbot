@@ -656,7 +656,6 @@ function EvalPriority(spell)
 		return false
 	end
 	local priority = script.menu.w[spell.name:lower()].priority:get()
-	print(priority)
 	if priority == 1 then 
 		return true
 	end
@@ -1114,8 +1113,6 @@ local function OnTick()
 				else
 					if target2 then
 						CastW2(target2)
-					else
-						player:castSpell("release", 1, game.mousePos)
 					end
 				end
 			else 
