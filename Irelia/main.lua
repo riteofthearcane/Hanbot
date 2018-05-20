@@ -895,80 +895,70 @@ function CastE2(target)
 				player:castSpell("pos", 2, vec3(dashPos.x, target.pos.y, dashPos.y))
 				setDebug(target, vec3(dashPos.x, target.pos.y, dashPos.y)*1, vec3(dashPos.x, target.pos.y, dashPos.y)*1,vec3(0,0,0))
 				resetE()
-				print ("5")
 			end
 			
 		else
-			if not target.path.isActive then
-				local inActive = e_parameters.e1Pos + (target.pos-e_parameters.e1Pos):norm()*(target.pos:dist(e_parameters.e1Pos)+target.moveSpeed*e_parameters.delayFloor*2)
-				if target.pos:dist(player.pos) < e.range then 
-					player:castSpell("pos", 2, inActive)
-					setDebug(target, inActive*1,target.pos*1, vec3(0,0,0))
+
+			local short1 = false
+			local short2 = false
+			e.delay = e_parameters.delayFloor + player.pos:dist(target.pos)/e_parameters.missileSpeed
+			local seg1 = gpred.linear.get_prediction(e, target, vec2(e_parameters.e1Pos.x,e_parameters.e1Pos.y ))
+			--local tempPos = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
+			--local predPos3D1 = e_parameters.e1Pos:lerp(tempPos,(tempPos:dist(e_parameters.e1Pos)+e.radius)/tempPos:dist(e_parameters.e1Pos))
+			local predPos3D1 = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
+			local predPos1 = vec2(seg1.endPos.x, seg1.endPos.y)
+			
+			if seg1 and player.pos2D:dist(predPos1)<=e.range then
+				if gpred.trace.linear.hardlock(e, seg1, target) or gpred.trace.linear.hardlockmove(e, seg1, target) then
+					player:castSpell("pos", 2, predPos3D1)
+					setDebug(target, predPos3D1*1,target.pos*1, vec3(0,0,0))
 					resetE()
-					print ("6")
+				end
+				e1Pos2D = vec2(e_parameters.e1Pos.x, e_parameters.e1Pos.z)
+				local tempCastPos = mathf.closest_vec_line(player.pos2D, e1Pos2D, predPos1)
+				local tempCastPos3D = vec3(tempCastPos.x, target.pos.y, tempCastPos.y)
+				
+				if tempCastPos3D:dist(player.pos)>e.range or predPos3D1:dist(e_parameters.e1Pos) > tempCastPos3D:dist(e_parameters.e1Pos) or tempCastPos3D:dist(e_parameters.e1Pos) < target.moveSpeed*e_parameters.delayFloor*1.5 then 
+					--tempCastPos3D = vec3(predPos1.x, target.pos.y, predPos1.y)
+					short1 = true
+					local pathNorm = (predPos3D1-e_parameters.e1Pos):norm()
+					local extendPos = e_parameters.e1Pos + pathNorm*(predPos3D1:dist(e_parameters.e1Pos)+target.moveSpeed*e_parameters.delayFloor*1.5)
+					if player.pos:dist(extendPos)<e.range then
+						tempCastPos3D = extendPos
+					else
+						tempCastPos3D = RaySetDist(e_parameters.e1Pos, pathNorm, player.pos, e.range)
+					end
 				end
 				
-			else
-				local short1 = false
-				local short2 = false
-				e.delay = e_parameters.delayFloor + player.pos:dist(target.pos)/e_parameters.missileSpeed
-				local seg1 = gpred.linear.get_prediction(e, target, vec2(e_parameters.e1Pos.x,e_parameters.e1Pos.y ))
-				--local tempPos = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
-				--local predPos3D1 = e_parameters.e1Pos:lerp(tempPos,(tempPos:dist(e_parameters.e1Pos)+e.radius)/tempPos:dist(e_parameters.e1Pos))
-				local predPos3D1 = vec3(seg1.endPos.x, target.pos.y, seg1.endPos.y)
-				local predPos1 = vec2(seg1.endPos.x, seg1.endPos.y)
-				
-				if seg1 and player.pos2D:dist(predPos1)<=e.range then
-					if gpred.trace.linear.hardlock(e, seg1, target) or gpred.trace.linear.hardlockmove(e, seg1, target) then
-						player:castSpell("pos", 2, predPos3D1)
-						setDebug(target, predPos3D1*1,target.pos*1, vec3(0,0,0))
-						resetE()
-					end
-					local tempCastPos = mathf.closest_vec_line(e_parameters.e1Pos,predPos3D1, player.pos)
-					local tempCastPos3D = vec3(tempCastPos.x, target.pos.y, tempCastPos.y)
+				if tempCastPos3D then
+					e.delay = e_parameters.delayFloor + player.pos:dist(tempCastPos3D)/e_parameters.missileSpeed
+					local seg2 = gpred.linear.get_prediction(e, target, vec2(e_parameters.e1Pos.x,e_parameters.e1Pos.y ))
+					local predPos3D2 = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
+					--tempPos = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
+					--local predPos3D2 = e_parameters.e1Pos:lerp(tempPos,(tempPos:dist(e_parameters.e1Pos)+e.radius)/tempPos:dist(e_parameters.e1Pos))
+					local predPos2 = vec2(seg2.endPos.x, seg2.endPos.y)
 					
-					if tempCastPos3D:dist(player.pos)>e.range or predPos3D1:dist(e_parameters.e1Pos) > tempCastPos3D:dist(e_parameters.e1Pos) or tempCastPos3D:dist(e_parameters.e1Pos) < target.moveSpeed*e_parameters.delayFloor*1.5 then 
-						--tempCastPos3D = vec3(predPos1.x, target.pos.y, predPos1.y)
-						short1 = true
-						local pathNorm = (predPos3D1-e_parameters.e1Pos):norm()
-						local extendPos = e_parameters.e1Pos + pathNorm*(predPos3D1:dist(e_parameters.e1Pos)+target.moveSpeed*e_parameters.delayFloor*1.5)
-						if player.pos:dist(extendPos)<e.range then
-							tempCastPos3D = extendPos
-						else
-							tempCastPos3D = RaySetDist(e_parameters.e1Pos, pathNorm, player.pos, e.range)
-						end
-					end
-					
-					if tempCastPos3D then
-						e.delay = e_parameters.delayFloor + player.pos:dist(tempCastPos3D)/e_parameters.missileSpeed
-						local seg2 = gpred.linear.get_prediction(e, target, vec2(e_parameters.e1Pos.x,e_parameters.e1Pos.y ))
-						local predPos3D2 = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
-						--tempPos = vec3(seg2.endPos.x, target.pos.y, seg2.endPos.y)
-						--local predPos3D2 = e_parameters.e1Pos:lerp(tempPos,(tempPos:dist(e_parameters.e1Pos)+e.radius)/tempPos:dist(e_parameters.e1Pos))
-						local predPos2 = vec2(seg2.endPos.x, seg2.endPos.y)
+					if seg2 and TraceFilter(seg2, target,e, true) then
+						local castPos = mathf.closest_vec_line(player.pos2D, e1Pos2D,predPos2)
+						local castPos3D = vec3(castPos.x, target.pos.y, castPos.y)
 						
-						if seg2 and TraceFilter(seg2, target,e, true) then
-							local castPos = mathf.closest_vec_line(e_parameters.e1Pos,predPos3D2, player.pos)
-							local castPos3D = vec3(castPos.x, target.pos.y, castPos.y)
-							
-							if castPos3D:dist(player.pos)>e.range or predPos3D2:dist(e_parameters.e1Pos) > castPos3D:dist(e_parameters.e1Pos) or castPos3D:dist(e_parameters.e1Pos) <target.moveSpeed*e_parameters.delayFloor*1.5 then 
-								--castPos3D = predPos3D2
-								short2 = true
-								--temp code
-								pathNorm = (predPos3D2-e_parameters.e1Pos):norm()
-								extendPos = e_parameters.e1Pos + pathNorm*(predPos3D2:dist(e_parameters.e1Pos)+target.moveSpeed*e_parameters.delayFloor*1.5)
-								if player.pos:dist(extendPos)<e.range then
-									castPos3D = extendPos
-								else
-									castPos3D = RaySetDist(e_parameters.e1Pos, pathNorm, player.pos, e.range)
-								end
-							else 
+						if castPos3D:dist(player.pos)>e.range or predPos3D2:dist(e_parameters.e1Pos) > castPos3D:dist(e_parameters.e1Pos) or castPos3D:dist(e_parameters.e1Pos) <target.moveSpeed*e_parameters.delayFloor*1.5 then 
+							--castPos3D = predPos3D2
+							short2 = true
+							--temp code
+							pathNorm = (predPos3D2-e_parameters.e1Pos):norm()
+							extendPos = e_parameters.e1Pos + pathNorm*(predPos3D2:dist(e_parameters.e1Pos)+target.moveSpeed*e_parameters.delayFloor*1.5)
+							if player.pos:dist(extendPos)<e.range then
+								castPos3D = extendPos
+							else
+								castPos3D = RaySetDist(e_parameters.e1Pos, pathNorm, player.pos, e.range)
 							end
-							if short1 == short2 then
-								player:castSpell("pos", 2, castPos3D)
-								setDebug(target, castPos3D*1,predPos3D2*1, vec3(tempCastPos.x, target.pos.y, tempCastPos.y))
-								resetE()
-							end
+						else 
+						end
+						if short1 == short2 then
+							player:castSpell("pos", 2, castPos3D)
+							setDebug(target, castPos3D*1,predPos3D2*1, vec3(tempCastPos.x, target.pos.y, tempCastPos.y))
+							resetE()
 						end
 					end
 				end
