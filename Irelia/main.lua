@@ -912,11 +912,6 @@ function CastE2(target)
 			local seg1 = gpred.linear.get_prediction(e, target, vec2(e_parameters.e1Pos.x,e_parameters.e1Pos.y ))
 			local predPos1 = toVec3(seg1.endPos)
 			if seg1 and player.pos:dist(predPos1) <= e.range then
-				if gpred.trace.linear.hardlock(e, seg1, target) or gpred.trace.linear.hardlockmove(e, seg1, target) then
-					player:castSpell("pos", 2, predPos1)
-					setDebug(target, predPos1*1,target.pos*1, zero)
-					resetE()
-				end
 				local tempCastPos = zero
 				local closest1 = toVec3(mathf.closest_vec_line(player.pos2D, toVec2(e_parameters.e1Pos), toVec2(predPos1)))
 				if closest1:dist(player.pos)>e.range or predPos1:dist(e_parameters.e1Pos) > closest1:dist(e_parameters.e1Pos) or closest1:dist(e_parameters.e1Pos) < target.moveSpeed*e_parameters.delayFloor*1.5 then 
@@ -944,14 +939,11 @@ function CastE2(target)
 							extendPos = e_parameters.e1Pos + pathNorm*(predPos2:dist(e_parameters.e1Pos)+target.moveSpeed*e_parameters.delayFloor*1.5)
 							if player.pos:dist(extendPos)<e.range then
 								castPos = extendPos
-								print('1')
 							else
 								castPos = RaySetDist(e_parameters.e1Pos, pathNorm, player.pos, e.range)
-								print('2')
 							end
 						else 
 							castPos = closest2
-							print('3')
 						end
 						if short1 == short2 then
 							player:castSpell("pos", 2, castPos)
