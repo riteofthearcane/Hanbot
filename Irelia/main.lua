@@ -921,8 +921,8 @@ function CastE2(target)
 				local closest1 = toVec3(mathf.closest_vec_line(player.pos2D, toVec2(e_parameters.e1Pos), toVec2(predPos1)))
 				if closest1:dist(player.pos)>e.range or predPos1:dist(e_parameters.e1Pos) > closest1:dist(e_parameters.e1Pos) or closest1:dist(e_parameters.e1Pos) < target.moveSpeed*e_parameters.delayFloor*1.5 then 
 					short1 = true
-					local pathNorm = (predPos3D1-e_parameters.e1Pos):norm()
-					local extendPos = e_parameters.e1Pos + pathNorm*(predPos3D1:dist(e_parameters.e1Pos)+target.moveSpeed*e_parameters.delayFloor*1.5)
+					local pathNorm = (predPos1-e_parameters.e1Pos):norm()
+					local extendPos = e_parameters.e1Pos + pathNorm*(predPos1:dist(e_parameters.e1Pos)+target.moveSpeed*e_parameters.delayFloor*1.5)
 					if player.pos:dist(extendPos) < e.range then
 						tempCastPos = extendPos
 					else
