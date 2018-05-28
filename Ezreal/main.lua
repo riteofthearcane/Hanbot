@@ -8,9 +8,33 @@ local ts = module.internal('TS')
 local orb = module.internal("orb")
 local gpred = module.internal("pred")
 
-q = {slot = 0, speed = 2000, range = 1150, delay = 0.25, width = 80, boundingRadiusMod = 1, collision = {hero = true, minion = true}}
-w = {slot = 1, speed = 1550, range = 1000, delay = 0.25, width = 80, boundingRadiusMod = 1}
-r = {slot = 3, speed = 2000, range = 25000, delay = 1, width = 160, boundingRadiusMod = 1}
+q = {
+	slot = 0,
+	speed = 2000,
+	range = 1150,
+	delay = 0.25,
+	width = 80, 
+	boundingRadiusMod = 1,
+	collision = {hero = true, minion = true}
+}
+
+w = {
+	slot = 1,
+	speed = 1550,
+	range = 1000, 
+	delay = 0.25,
+	width = 80, 
+	boundingRadiusMod = 1
+}
+
+r = {
+	slot = 3,
+	speed = 2000,
+	range = 25000, 
+	delay = 1,
+	width = 160, 
+	boundingRadiusMod = 1
+}
 
 searchRange = 3000
 predPos = {}
@@ -21,13 +45,12 @@ menu = menu("ezreal", "Ezreal")
 	menu:keybind("r", "R Key", "Z", nil)
 	ts.load_to_menu(menu)
 	
-
 function toVec3(vec2)
-	return vec3(vec2.x, game.mousePos.y, vec2.y)
+	return vec2 and vec3(vec2.x, game.mousePos.y, vec2.y) or nil
 end
 
 function toVec2(vec3)
-	return vec2(vec3.x, vec3.z)
+	return vec3 and vec2(vec3.x, vec3.z) or nil
 end
 
 function TraceFilter(spell, seg, obj)
@@ -121,9 +144,14 @@ function Main()
 		end
 		CastR()
 	end 
-	if menu.autoQ:get() and target then
-		Cast(target, q)
-	end                               
+	if target then
+		if menu.autoQ:get() and not player.isRecalling then
+			Cast(target, q)
+		end
+		if menu.r:get() then
+			Cast(target, r)
+		end
+	end                             
 end
 
 function OnDraw()
@@ -133,6 +161,8 @@ end
 
 orb.combat.register_f_after_attack(Main)
 orb.combat.register_f_out_of_range(Main)
+
+
 cb.add(cb.draw, OnDraw)
 
 
