@@ -57,7 +57,7 @@ function CanW(seg, obj)
 	end
 	
 	enemiesInRange = common.GetEnemyHeroesInRange(player.attackRange, player.pos)
-	minionsInRange = common.GetMinionsInRange(300, TEAM_ENEMY, obj,pos)
+	minionsInRange = common.GetMinionsInRange(300, TEAM_ENEMY, obj.pos)
 	monstersInRange = common.GetMinionsInRange(300, TEAM_NEUTRAL, obj.pos)
 	
 	if dist > player.attackRange and #minionsInRange + #monstersInRange > 2  then
