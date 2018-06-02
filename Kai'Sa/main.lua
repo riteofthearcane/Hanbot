@@ -44,11 +44,11 @@ function CanW(seg, obj)
 		return false
 	end
 	
-	if gpred.trace.linear.hardlock(spell, seg, obj) then
+	if gpred.trace.linear.hardlock(w, seg, obj) then
 		return true
 	end
 	
-	if gpred.trace.linear.hardlockmove(spell, seg, obj) then
+	if gpred.trace.linear.hardlockmove(w, seg, obj) then
 		return true
 	end
 	
@@ -57,7 +57,7 @@ function CanW(seg, obj)
 	end
 	
 	enemiesInRange = common.GetEnemyHeroesInRange(player.attackRange, player.pos)
-	minionsInRange = common.GetMinionsInRange(300, TEAM_ENEMY, obj,pos)
+	minionsInRange = common.GetMinionsInRange(300, TEAM_ENEMY, obj.pos)
 	monstersInRange = common.GetMinionsInRange(300, TEAM_NEUTRAL, obj.pos)
 	
 	if dist > player.attackRange and #minionsInRange + #monstersInRange > 2  then

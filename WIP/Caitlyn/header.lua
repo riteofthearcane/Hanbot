@@ -1,5 +1,5 @@
 return {
-	id = 'caitlyn+',
-	name = 'Caitlyn+',
+	id = 'αCaitlyn',
+	name = 'αCaitlyn',
 	load = function() return player.charName == "Caitlyn" end,
 }
