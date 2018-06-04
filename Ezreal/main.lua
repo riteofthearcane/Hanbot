@@ -96,6 +96,7 @@ function CastR()
 	for _, target in pairs (targets) do
 		if target.buff[5] or target.buff[8] or target.buff[24] or target.buff[11] or target.buff[22] or target.buff[8] or target.buff[21] then
 			Cast(target, r)
+			print('cc')
 			return 
 		else
 			seg = gpred.linear.get_prediction(r, target)
@@ -112,7 +113,7 @@ function CastR()
 			if l == j then
 				count = count + 1
 			else
-				closest = toVec3(mathf.closest_vec_line(toVec2(l), player.pos2D, toVec2(j)))
+				closest = toVec3(mathf.closest_vec_line_seg(toVec2(l), player.pos2D, toVec2(j)))
 				if closest and closest:dist(j) < r.width + k.boundingRadius then
 					count = count + 1
 				end
@@ -125,19 +126,20 @@ function CastR()
 	end
 	if maxHit.count >= 3 then 
 		player:castSpell("pos", r.slot, predPos[maxHit.target])
+		print('3')
 	end
 end
 
 TargetSelection = function(res, obj, dist)
     if dist < q.range then
-      res.obj = obj
+      res.obj = obj	
       return true
     end
 end
 
 function Main()
 	target = ts.get_result(TargetSelection).obj
-	if orb.menu.combat:get() then
+	if orb.combat.is_active() then
 		if target then
 			Cast(target, q)
 			Cast(target, w)
@@ -151,7 +153,7 @@ function Main()
 		if menu.r:get() then
 			Cast(target, r)
 		end
-	end                             
+	end                          	   
 end
 
 function OnDraw()
