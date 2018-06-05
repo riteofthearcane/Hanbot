@@ -214,7 +214,7 @@ end
 local function checkAA(missile)
 	if script.menu.experimental:get() and missile.spell.owner.ptr == player.ptr and missile.spell.isBasicAttack then
 		enemy = orb.core.cur_attack_target
-		if orb.menu.combat:get() and common.IsValidTarget(enemy) and player.pos:dist(enemy.pos) <= script.aa.range-100 and os.clock() >= script.nextcast then
+		if orb.menu.combat.key:get() and common.IsValidTarget(enemy) and player.pos:dist(enemy.pos) <= script.aa.range-100 and os.clock() >= script.nextcast then
 			if (enemy.buff["varuswdebuff"] and not script.guinsoos and enemy.buff["varuswdebuff"].stacks== 1) or (script.guinsoos and not enemy.buff["varuswdebuff"]) then
 				aatraveltime = player.pos:dist(enemy.pos)/script.aa.speed
 				if player:spellSlot(0).state == 0 and player:spellSlot(2).state ~= 0 then
@@ -241,7 +241,7 @@ end
 local function OnTick()
 	local target = ts.get_result(TargetSelection).obj
 	AntiGap()
-	if orb.menu.combat:get() then
+	if orb.menu.combat.key:get() then
 		if os.clock() >= script.q.chargetime and script.q.target~= nil then
 			if not common.IsValidTarget(script.q.target) then
 				script.q.target = target
@@ -275,7 +275,7 @@ local function OnTick()
 		if script.menu.ult:get() then
 			script.CastR(target, false)
 		end
-		if orb.menu.hybrid:get() then
+		if orb.menu.hybrid.key:get() then
 			script.CastE(target)
 		end
 	end

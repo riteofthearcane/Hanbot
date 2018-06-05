@@ -435,7 +435,7 @@ function OnTick()
 	end
 	local target = ts.get_result(TargetSelection).obj
 	if target then
-		if orb.menu.combat:get() then
+		if orb.menu.combat.key:get() then
 			enemiesInRange = common.GetEnemyHeroesInRange(qe.range, player.pos)
 			for _, enemy in pairs(enemiesInRange) do
 				CastR(enemy)
@@ -446,7 +446,7 @@ function OnTick()
 			CastW1()
 			CastQ(target, true)
 		end
-		if orb.menu.hybrid:get() then
+		if orb.menu.hybrid.key:get() then
 			CastQ(target, true)
 		end
 	end

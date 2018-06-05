@@ -687,7 +687,7 @@ function EvalPriority(spell)
 		end
 	end
 	if priority == 3 then
-		if orb.menu.last_hit:get() or orb.menu.lane_clear:get() or orb.menu.hybrid:get() and not (target and player.pos:dist(target) < player.attackRange + 150) then
+		if orb.menu.last_hit.key:get() or orb.menu.lane_clear.key:get() or orb.menu.hybrid:get() and not (target and player.pos:dist(target) < player.attackRange + 150) then
 			return true
 		end
 	end
@@ -1024,7 +1024,7 @@ local function OnTick()
 	end
 
 	if target and common.IsValidTarget(target) then
-		if orb.menu.combat:get() then
+		if orb.menu.combat.key:get() then
 			if target.buff["ireliamark"] or CanKS(target) then
 				CastQ(target)
 			end
@@ -1039,18 +1039,18 @@ local function OnTick()
 		end
 
 	else
-		if orb.menu.combat:get() then
+		if orb.menu.combat.key:get() then
 			bestQ = GetBestQ(game.mousePos)
 		end
 	end
 
-	if orb.menu.combat:get() then
+	if orb.menu.combat.key:get() then
 		if bestQ ~= nil then
 			CastQ(bestQ)
 		end
 	end
 
-	if orb.menu.hybrid:get() then
+	if orb.menu.hybrid.key:get() then
 		LastHitQ()
 	end
 
@@ -1058,11 +1058,11 @@ local function OnTick()
 		if e_parameters.e1Pos == zero and player:spellSlot(2).name == "IreliaE" then
 			if target and (not target.buff["ireliamark"] or CanKS(target)) then
 				if target2 then
-					if orb.menu.combat:get() or script.menu.e:get() then
+					if orb.menu.combat.key:get() or script.menu.e:get() then
 						MultiE1(target2,target)
 					end
 				else
-					if (orb.menu.combat:get() and ((bestQ ~= nil and bestQ.pos:dist(target.pos) < script.menu.erange:get()) or
+					if (orb.menu.combat.key:get() and ((bestQ ~= nil and bestQ.pos:dist(target.pos) < script.menu.erange:get()) or
 					(bestQ == nil and player.pos:dist(target.pos) < script.menu.erange:get()))) or script.menu.e:get() then
 						CastE1(target)
 					end

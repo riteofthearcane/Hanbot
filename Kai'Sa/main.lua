@@ -75,7 +75,7 @@ end
 
 
 function CastQ()
-	if menu.q:get() == 3 or not orb.menu.combat:get() then
+	if menu.q:get() == 3 or not orb.menu.combat.key:get() then
 		return
 	end
 	if player:spellSlot(0).state == 0  then
@@ -112,7 +112,7 @@ end
 
 function Main()
 	target = ts.get_result(TargetSelection).obj
-	if target and orb.menu.combat:get() then
+	if target and orb.menu.combat.key:get() then
 		CastW(target)
 	end
 end
